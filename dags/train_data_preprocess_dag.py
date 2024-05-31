@@ -24,7 +24,7 @@ default_args = {
 def download_from_s3() -> None:
     hook = S3Hook('my-aws-conn')
     file_name = hook.download_file(
-        key='data/initial_training/Archive.zip',
+        key='data/initial_training/train.zip',
         bucket_name='sepsis-training-bucket'
     )
     return file_name
@@ -48,22 +48,25 @@ def convert_psv_to_df(ti):
     count = 0
     rows = 0
     datatable = pd.DataFrame()
-    for filename in os.listdir(filepath):
-        if filename.endswith(".psv"): 
-            with open(filepath + filename) as openfile:
-                patient = filename.split("p")[1]
-                patient = patient.split(".")[0]
+    for root, dirs, files in os.walk(filepath):
+        for filename in files:
+            if filename.endswith(".psv"): 
+                full_path = os.path.join(root, filename)
+                with open(full_path) as openfile:
+                    patient = filename.split("p")[1]
+                    patient = patient.split(".")[0]
 
-                file = pd.read_csv(openfile,sep = "|")
-                file['Patient_ID'] = patient
-                
-                file = file.reset_index()
-                file = file.rename(columns={"index": "Hour"})
-                
-                datatable = pd.concat([datatable, file])
-                
-                rows += file.size
-                count += 1
+                    file = pd.read_csv(openfile, sep="|")
+                    file['Patient_ID'] = patient
+                    
+                    file = file.reset_index()
+                    file = file.rename(columns={"index": "Hour"})
+                    
+                    datatable = pd.concat([datatable, file], ignore_index=True)
+                    
+                    rows += file.size
+            count += 1
+            print(count)
 
         if count % 10000 == 0:
             print("Progress || Files: {} || Number of items: {}".format(count,rows))
@@ -76,7 +79,6 @@ def data_preprocessing(ti):
     filepath = list_of_args[0]
 
     df = pd.read_csv(filepath)
-    print(df.columns)
     # Fill missing values with 0s
     cols_to_fill_zero = ['Bilirubin_direct', 'TroponinI', 'Fibrinogen']
     df[cols_to_fill_zero] = df[cols_to_fill_zero].fillna(0)
@@ -188,5 +190,23 @@ with DAG(
         replace=True,
         aws_conn_id="my-aws-conn"
     )
+
+    task_push_X_data = LocalFilesystemToS3Operator(
+        task_id="push_X_data_to_s3",
+        filename="X_data.pkl",
+        dest_key="processed_data/X_train_data.pkl",
+        dest_bucket="sepsis-training-bucket",
+        replace=True,
+        aws_conn_id="my-aws-conn"
+    )
+
+    task_push_y_data = LocalFilesystemToS3Operator(
+        task_id="push_y_data_to_s3",
+        filename="y_data.pkl",
+        dest_key="processed_data/y_train_data.pkl",
+        dest_bucket="sepsis-training-bucket",
+        replace=True,
+        aws_conn_id="my-aws-conn"
+    )
     
-    task_download_from_s3 >> task_unzip_file >> task_convert_psv_to_df >> task_data_preprocessing >> [task_push_scaler, task_push_encoder, task_push_imputer]
+    task_download_from_s3 >> task_unzip_file >> task_convert_psv_to_df >> task_data_preprocessing >> [task_push_scaler, task_push_encoder, task_push_imputer, task_push_X_data, task_push_y_data]
