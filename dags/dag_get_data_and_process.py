@@ -18,7 +18,7 @@ default_args = {
 }
 
 def data_preprocessing(ti):
-    df = pd.read_csv("gs://sepsis-prediction-mlops/data/modified_data/finalDataset-000000000000.csv", sep=";")
+    df = pd.read_csv("gs://sepsis-prediction-mlops/data/modified_data/finalDataset-000000000000.csv", sep=",")
 
     # Fill missing values with 0s
     cols_to_fill_zero = ['Bilirubin_direct', 'TroponinI', 'Fibrinogen']
@@ -138,7 +138,7 @@ with DAG(
             format='CSV',
             overwrite=true,
             header=true,
-            field_delimiter=';') AS
+            field_delimiter=',') AS
             SELECT * FROM sepsis.dataset_temporary LIMIT 9223372036854775807;
 
             DROP TABLE IF EXISTS sepsis.dataset_temporary;
