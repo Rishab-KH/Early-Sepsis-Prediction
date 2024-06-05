@@ -1,14 +1,16 @@
 from airflow import DAG
-from datetime import timedelta
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 import pickle
+import os
 from airflow.operators.python import PythonOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import GroupShuffleSplit
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 
 default_args = {
@@ -17,55 +19,67 @@ default_args = {
     "retry_delay": timedelta(seconds=10),
 }
 
-def data_preprocessing(ti):
+def save_data_to_pickle(obj, obj_name):
+    with open(obj_name, 'wb') as file:
+        pickle.dump(obj, file)
+
+def load_data_from_pickle(obj_name):
+    with open(obj_name, 'rb') as file:
+        obj = pickle.load(file)
+    return obj
+
+def train_test_split():
     df = pd.read_csv("gs://sepsis-prediction-mlops/data/modified_data/finalDataset-000000000000.csv", sep=",")
-    df = df[df.columns.drop('Patient_ID')]
-    # Fill missing values with 0s
-    cols_to_fill_zero = ['Bilirubin_direct', 'TroponinI', 'Fibrinogen']
-    df[cols_to_fill_zero] = df[cols_to_fill_zero].fillna(0)
+    train_inds, test_inds = next(GroupShuffleSplit(test_size=0.25, n_splits=2,).split(df, groups=df['Patient_ID']))
+    df_train = df.iloc[train_inds] 
+    df_test = df.iloc[test_inds]
 
-    # Fill missing values with mean 
-    imputer = SimpleImputer(strategy='mean')
-    df = pd.DataFrame(imputer.fit_transform(df), columns=imputer.get_feature_names_out()) # This line is sus, removes features that does not need imputation
+    X_train = df_train.drop('SepsisLabel', axis=1)
+    X_test = df_test.drop('SepsisLabel', axis=1)
+    y_train = df_train['SepsisLabel']
+    y_test = df_test['SepsisLabel']
 
-    df.replace([np.inf, -np.inf], np.nan, inplace=True)
-    df.fillna(df.mean(), inplace=True)
-    
-    # Label encode columns
-    if 'Gender' in df.columns:
-        encoder = LabelEncoder()
-        df['Gender'] = encoder.fit_transform(df['Gender'])
+    save_data_to_pickle(X_train, 'X_train.pkl')
+    save_data_to_pickle(X_test, 'X_test.pkl')
+    save_data_to_pickle(y_train, 'y_train.pkl')
+    save_data_to_pickle(y_test, 'y_test.pkl')
 
-    X = df.drop('SepsisLabel', axis=1)
-    y = df['SepsisLabel']   
+def data_preprocess(data_input, data_output):
+    X_df = load_data_from_pickle(data_input)
 
-    # Clip values
-    X['Age_log'] = np.log1p(X['Age'].clip(lower=0))
-    X['ICULOS_log'] = np.log1p(X['ICULOS'].clip(lower=0))
-    X['HospAdmTime_log'] = np.log1p(-X['HospAdmTime'].clip(upper=0) + 1)
+    #### RISHAB AND SHARANYA DATAPREPROCESS CODE ###
+    # X_train_preprocessed_df = some_data_preprocess(X_train_df)
+    X_preprocessed_df = X_df.copy()
+    ###############################################
 
-    X.drop(columns=['Age', 'ICULOS', 'HospAdmTime'], inplace=True)
+    save_data_to_pickle(X_preprocessed_df, data_output)
 
-    # Scale values
+def scale_train_data():
+    X_train_processed_df = load_data_from_pickle('X_train_processed.pkl')
     scaler = StandardScaler()
-    X_scaled = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
+    columns_to_scale = ['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine', 'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets']
+    X_train_processed_df[columns_to_scale] = scaler.fit_transform(X_train_processed_df[columns_to_scale])
+    
+    save_data_to_pickle(X_train_processed_df, 'X_train_processed_scaled.pkl')
+    save_data_to_pickle(scaler, 'scaler.pkl')
 
-    # Save processed data
-    with open('X_data.pkl', 'wb') as file:
-        pickle.dump(X_scaled, file)
+def scale_test_data():
+    X_test_processed_df = load_data_from_pickle('X_test_processed.pkl')
+    scaler = load_data_from_pickle('scaler.pkl')
 
-    with open('y_data.pkl', 'wb') as file:
-        pickle.dump(y, file)
+    columns_to_scale = ['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine', 'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets']
+    X_test_processed_df[columns_to_scale] = scaler.transform(X_test_processed_df[columns_to_scale])
 
-    # Save artifacts
-    with open('scaler.pkl', 'wb') as file:
-        pickle.dump(scaler, file)
+    save_data_to_pickle(X_test_processed_df, 'X_test_processed_scaled.pkl')
 
-    with open('imputer.pkl', 'wb') as file:
-        pickle.dump(imputer, file)
-
-    with open('encoder.pkl', 'wb') as file:
-        pickle.dump(encoder, file)
+def clean_pickle_files():
+    directory = os.getcwd()
+    files = os.listdir(directory)
+    for file in files:
+        if file.endswith('.pkl'):
+            file_path = os.path.join(directory, file)
+            os.remove(file_path)
+            print(f"Deleted {file_path}")
 
 with DAG(
     dag_id = "train_data_preprocess_with_gcp",
@@ -73,7 +87,8 @@ with DAG(
     start_date =datetime(2024,5,15,2),
     schedule_interval = None,
     default_args=default_args,
-    catchup = False
+    catchup = False,
+    template_searchpath=["/opt/airflow/dags/utils"]
 ) as dag:
 
     task_gcs_psv_to_gcs_csv = BigQueryInsertJobOperator(
@@ -81,118 +96,87 @@ with DAG(
     gcp_conn_id="my-gcp-conn",
     configuration={
         "query": {
-            "query": """
-            CREATE OR REPLACE EXTERNAL TABLE sepsis.dataset_temporary (
-                HR FLOAT64,
-                O2Sat FLOAT64,
-                Temp FLOAT64,
-                SBP FLOAT64,
-                MAP FLOAT64,
-                DBP FLOAT64,
-                Resp FLOAT64,
-                EtCO2 FLOAT64,
-                BaseExcess FLOAT64,
-                HCO3 FLOAT64,
-                FiO2 FLOAT64,
-                pH FLOAT64,
-                PaCO2 FLOAT64,
-                SaO2 FLOAT64,
-                AST FLOAT64,
-                BUN FLOAT64,
-                Alkalinephos FLOAT64,
-                Calcium FLOAT64,
-                Chloride FLOAT64,
-                Creatinine FLOAT64,
-                Bilirubin_direct FLOAT64,
-                Glucose FLOAT64,
-                Lactate FLOAT64,
-                Magnesium FLOAT64,
-                Phosphate FLOAT64,
-                Potassium FLOAT64,
-                Bilirubin_total FLOAT64,
-                TroponinI FLOAT64,
-                Hct FLOAT64,
-                Hgb FLOAT64,
-                PTT FLOAT64,
-                WBC FLOAT64,
-                Fibrinogen FLOAT64,
-                Platelets FLOAT64,
-                Age FLOAT64,
-                Gender INT64,
-                Unit1 FLOAT64,
-                Unit2 FLOAT64,
-                HospAdmTime FLOAT64,
-                ICULOS INT64,
-                SepsisLabel INT64
-            )
-            OPTIONS (
-            format = 'CSV',
-            uris = ['gs://sepsis-prediction-mlops/data/initial_training/training_setA/training/*.psv',
-                    'gs://sepsis-prediction-mlops/data/initial_training/training_setB/training_setB/*.psv'],
-            skip_leading_rows = 1,
-            field_delimiter="|"
-            );
-
-            EXPORT DATA OPTIONS(
-            uri='gs://sepsis-prediction-mlops/data/modified_data/finalDataset-*.csv',
-            format='CSV',
-            overwrite=true,
-            header=true,
-            field_delimiter=',') AS
-            SELECT *, REGEXP_EXTRACT(_FILE_NAME, r'([^/]+)\.psv$') AS Patient_ID
-            FROM sepsis.dataset_temporary LIMIT 9223372036854775807;
-
-            DROP TABLE IF EXISTS sepsis.dataset_temporary;
-            """,
+            "query": "{% include '/merge_data_from_psv_to_csv.sql' %}",
             "useLegacySql": False
         }
     }
     )
 
-    task_data_preprocessing = PythonOperator(
-        task_id='data_preprocessing',
-        python_callable=data_preprocessing
+    task_train_test_split = PythonOperator(
+        task_id='train_test_split',
+        python_callable=train_test_split
+    )
+
+    task_X_train_data_preprocessing = PythonOperator(
+        task_id='preprocess_X_train',
+        python_callable=data_preprocess,
+        op_kwargs={'data_input': 'X_train.pkl', 'data_output':'X_train_processed.pkl'}
+    )
+
+    task_X_test_data_preprocessing = PythonOperator(
+        task_id='preprocess_X_test',
+        python_callable=data_preprocess,
+        op_kwargs={'data_input': 'X_test.pkl', 'data_output':'X_test_processed.pkl'}
+    )
+
+    task_scale_train_data = PythonOperator(
+        task_id='scale_train_data',
+        python_callable=scale_train_data,
+    )
+
+    task_scale_test_data = PythonOperator(
+        task_id='scale_test_data',
+        python_callable=scale_test_data,
     )
 
     task_push_scaler = LocalFilesystemToGCSOperator(
        task_id="push_scaler_to_gcs",
        gcp_conn_id="my-gcp-conn",
        src="scaler.pkl",
-       dst="processed_data/scaler.pkl",
+       dst="artifacts/scaler.pkl",
        bucket="sepsis-prediction-mlops"
     )
 
-    task_push_encoder = LocalFilesystemToGCSOperator(
-       task_id="push_encoder_to_gcs",
+    task_push_X_train_data = LocalFilesystemToGCSOperator(
+       task_id="push_X_train_data_to_gcs",
        gcp_conn_id="my-gcp-conn",
-       src="encoder.pkl",
-       dst="processed_data/encoder.pkl",
+       src="X_train_processed_scaled.pkl",
+       dst="data/processed_data/X_train.pkl",
        bucket="sepsis-prediction-mlops"
     )
 
-    task_push_imputer = LocalFilesystemToGCSOperator(
-       task_id="push_imputer_to_gcs",
+    task_push_X_test_data = LocalFilesystemToGCSOperator(
+       task_id="push_X_test_data_to_gcs",
        gcp_conn_id="my-gcp-conn",
-       src="imputer.pkl",
-       dst="processed_data/imputer.pkl",
+       src="X_test_processed_scaled.pkl",
+       dst="data/processed_data/X_test.pkl",
        bucket="sepsis-prediction-mlops"
     )
 
-    task_push_X_data = LocalFilesystemToGCSOperator(
-       task_id="push_X_data_to_gcs",
+    task_push_y_train_data = LocalFilesystemToGCSOperator(
+       task_id="push_y_train_data_to_gcs",
        gcp_conn_id="my-gcp-conn",
-       src="X_data.pkl",
-       dst="processed_data/X_data.pkl",
+       src="y_train.pkl",
+       dst="data/processed_data/y_train.pkl",
        bucket="sepsis-prediction-mlops"
     )
 
-    task_push_y_data = LocalFilesystemToGCSOperator(
-       task_id="push_y_data_to_gcs",
+    task_push_y_test_data = LocalFilesystemToGCSOperator(
+       task_id="push_y_test_data_to_gcs",
        gcp_conn_id="my-gcp-conn",
-       src="y_data.pkl",
-       dst="processed_data/y_data.pkl",
+       src="y_test.pkl",
+       dst="data/processed_data/y_test.pkl",
        bucket="sepsis-prediction-mlops"
     )
 
-    task_gcs_psv_to_gcs_csv >> task_data_preprocessing >> [task_push_scaler, task_push_imputer, task_push_encoder, task_push_X_data, task_push_y_data]
+    task_cleanup_files = PythonOperator(
+        task_id="clean_pickle_files",
+        python_callable=clean_pickle_files,
+    )
 
+    task_trigger_modelling_dag = TriggerDagRunOperator(
+        task_id="trigger_modelling_dag",
+        trigger_dag_id="model_data_and_store",
+    )
+
+    task_gcs_psv_to_gcs_csv >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
