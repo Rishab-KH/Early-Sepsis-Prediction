@@ -1,70 +1,183 @@
-import pytest
+from airflow import DAG
+from datetime import datetime, timedelta
 import pandas as pd
-import numpy as np
-from data_preprocessing import util_data_preprocessing
+import pickle
+import os
+import sys
+from airflow.operators.python import PythonOperator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import GroupShuffleSplit
+from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-@pytest.fixture
-def input_dataframe():
-    data = {
-        'Patient_ID': [1, 1, 2, 2],
-        'SBP': [120, 130, 140, 150],
-        'DBP': [80, 85, 90, 95],
-        'EtCO2': [35, 36, 37, 38],
-        'BaseExcess': [2, 3, 4, 5],
-        'HCO3': [22, 23, 24, 25],
-        'pH': [7.4, 7.45, 7.5, 7.55],
-        'PaCO2': [40, 41, 42, 43],
-        'Alkalinephos': [100, 110, 120, 130],
-        'Calcium': [9.0, 9.5, 10.0, 10.5],
-        'Magnesium': [1.8, 1.9, 2.0, 2.1],
-        'Phosphate': [3.5, 3.6, 3.7, 3.8],
-        'Potassium': [4.0, 4.1, 4.2, 4.3],
-        'PTT': [30, 31, 32, 33],
-        'Fibrinogen': [400, 410, 420, 430],
-        'Unit1': [1, 0, 1, 0],
-        'Unit2': [0, 1, 0, 1],
-        'TroponinI': [0.1, 0.2, np.nan, np.nan],
-        'Bilirubin_direct': [0.5, np.nan, 0.7, 0.8],
-        'AST': [20, 21, 22, 23],
-        'Bilirubin_total': [1.0, 1.1, 1.2, 1.3],
-        'Lactate': [1.5, 1.6, 1.7, 1.8],
-        'SaO2': [95, 96, 97, 98],
-        'FiO2': [21, 22, 23, 24],
-        'MAP': [70, 75, 80, 85],
-        'BUN': [10, 15, 20, 25],
-        'Creatinine': [0.9, 1.0, 1.1, 1.2],
-        'Glucose': [100, 110, 120, 130],
-        'WBC': [5.0, 5.5, 6.0, 6.5],
-        'Platelets': [200, 210, 220, 230],
-        'Gender': ['M', 'F', 'M', 'F']
+sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
+
+# Custom imports
+import dags.utils.config as config
+from dags.utils.data_preprocessing import util_data_preprocessing 
+
+DATA_DIR = config.DATA_DIR
+
+default_args = {
+    "owner": 'airflow',
+    "retries": 1,
+    "retry_delay": timedelta(seconds=10),
+}
+
+def save_data_to_pickle(obj, obj_name):
+    with open(obj_name, 'wb') as file:
+        pickle.dump(obj, file)
+
+def load_data_from_pickle(obj_name):
+    with open(obj_name, 'rb') as file:
+        obj = pickle.load(file)
+    return obj
+
+def train_test_split():
+    df = pd.read_csv(DATA_DIR, sep=",")
+    train_inds, test_inds = next(GroupShuffleSplit(test_size=0.25, n_splits=2,).split(df, groups=df['Patient_ID']))
+    df_train = df.iloc[train_inds] 
+    df_test = df.iloc[test_inds]
+
+    X_train = df_train.drop('SepsisLabel', axis=1)
+    X_test = df_test.drop('SepsisLabel', axis=1)
+    y_train = df_train['SepsisLabel']
+    y_test = df_test['SepsisLabel']
+
+    save_data_to_pickle(X_train, 'X_train.pkl')
+    save_data_to_pickle(X_test, 'X_test.pkl')
+    save_data_to_pickle(y_train, 'y_train.pkl')
+    save_data_to_pickle(y_test, 'y_test.pkl')
+
+def data_preprocess(data_input, data_output):
+    X_df = load_data_from_pickle(data_input)
+    X_preprocessed_df = util_data_preprocessing(X_df)
+    save_data_to_pickle(X_preprocessed_df, data_output)
+
+def scale_train_data():
+    X_train_processed_df = load_data_from_pickle('X_train_processed.pkl')
+    scaler = StandardScaler()
+    columns_to_scale = ['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine', 'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets']
+    X_train_processed_df[columns_to_scale] = scaler.fit_transform(X_train_processed_df[columns_to_scale])
+    
+    save_data_to_pickle(X_train_processed_df, 'X_train_processed_scaled.pkl')
+    save_data_to_pickle(scaler, 'scaler.pkl')
+
+def scale_test_data():
+    X_test_processed_df = load_data_from_pickle('X_test_processed.pkl')
+    scaler = load_data_from_pickle('scaler.pkl')
+
+    columns_to_scale = ['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine', 'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets']
+    X_test_processed_df[columns_to_scale] = scaler.transform(X_test_processed_df[columns_to_scale])
+
+    save_data_to_pickle(X_test_processed_df, 'X_test_processed_scaled.pkl')
+
+def clean_pickle_files():
+    directory = os.getcwd()
+    files = os.listdir(directory)
+    for file in files:
+        if file.endswith('.pkl'):
+            file_path = os.path.join(directory, file)
+            os.remove(file_path)
+            print(f"Deleted {file_path}")
+
+with DAG(
+    dag_id = "train_data_preprocess_with_gcp",
+    description = "This DAG is responsible for cleaning and preprocessing the raw data into usable format",
+    start_date =datetime(2024,5,15,2),
+    schedule_interval = None,
+    default_args=default_args,
+    catchup = False,
+    template_searchpath=["/opt/airflow/dags/utils"]
+) as dag:
+
+    task_gcs_psv_to_gcs_csv = BigQueryInsertJobOperator(
+    task_id="merge_data_from_psv_to_csv",
+    gcp_conn_id="my-gcp-conn",
+    configuration={
+        "query": {
+            "query": "{% include '/merge_data_from_psv_to_csv.sql' %}",
+            "useLegacySql": False
+        }
     }
-    df = pd.DataFrame(data)
-    return df
+    )
 
-def test_column_dropping(input_dataframe):
-    df = util_data_preprocessing(input_dataframe.copy())
-    columns_dropped = {'SBP', 'DBP', 'EtCO2', 'BaseExcess', 'HCO3', 'pH', 'PaCO2', 
-                       'Alkalinephos', 'Calcium', 'Magnesium', 'Phosphate', 'Potassium', 
-                       'PTT', 'Fibrinogen', 'Unit1', 'Unit2'}
-    for column in columns_dropped:
-        assert column not in df.columns
+    task_train_test_split = PythonOperator(
+        task_id='train_test_split',
+        python_callable=train_test_split
+    )
 
-def test_null_value_handling(input_dataframe):
-    df = util_data_preprocessing(input_dataframe.copy())
-    assert df.isnull().sum().sum() == 0
+    task_X_train_data_preprocessing = PythonOperator(
+        task_id='preprocess_X_train',
+        python_callable=data_preprocess,
+        op_kwargs={'data_input': 'X_train.pkl', 'data_output':'X_train_processed.pkl'}
+    )
 
-def test_gaussian_transformation(input_dataframe):
-    df = util_data_preprocessing(input_dataframe.copy())
-    columns_normalized = ['MAP', 'BUN', 'Creatinine', 'Glucose', 'WBC', 'Platelets']
-    for column in columns_normalized:
-        assert df[column].min() > 0  # since log(0) is undefined
+    task_X_test_data_preprocessing = PythonOperator(
+        task_id='preprocess_X_test',
+        python_callable=data_preprocess,
+        op_kwargs={'data_input': 'X_test.pkl', 'data_output':'X_test_processed.pkl'}
+    )
 
-def test_one_hot_encoding(input_dataframe):
-    df = util_data_preprocessing(input_dataframe.copy())
-    assert 'M' in df.columns and 'F' in df.columns
-    assert 'Gender' not in df.columns
+    task_scale_train_data = PythonOperator(
+        task_id='scale_train_data',
+        python_callable=scale_train_data,
+    )
 
-def test_final_output_structure(input_dataframe):
-    df = util_data_preprocessing(input_dataframe.copy())
-    expected_columns = {'MAP', 'BUN', 'Creatinine', 'Glucose', 'WBC', 'Platelets', 'M', 'F'}
-    assert set(df.columns) == expected_columns
+    task_scale_test_data = PythonOperator(
+        task_id='scale_test_data',
+        python_callable=scale_test_data,
+    )
+
+    task_push_scaler = LocalFilesystemToGCSOperator(
+       task_id="push_scaler_to_gcs",
+       gcp_conn_id="my-gcp-conn",
+       src="scaler.pkl",
+       dst="artifacts/scaler.pkl",
+       bucket="sepsis-prediction-mlops"
+    )
+
+    task_push_X_train_data = LocalFilesystemToGCSOperator(
+       task_id="push_X_train_data_to_gcs",
+       gcp_conn_id="my-gcp-conn",
+       src="X_train_processed_scaled.pkl",
+       dst="data/processed_data/X_train.pkl",
+       bucket="sepsis-prediction-mlops"
+    )
+
+    task_push_X_test_data = LocalFilesystemToGCSOperator(
+       task_id="push_X_test_data_to_gcs",
+       gcp_conn_id="my-gcp-conn",
+       src="X_test_processed_scaled.pkl",
+       dst="data/processed_data/X_test.pkl",
+       bucket="sepsis-prediction-mlops"
+    )
+
+    task_push_y_train_data = LocalFilesystemToGCSOperator(
+       task_id="push_y_train_data_to_gcs",
+       gcp_conn_id="my-gcp-conn",
+       src="y_train.pkl",
+       dst="data/processed_data/y_train.pkl",
+       bucket="sepsis-prediction-mlops"
+    )
+
+    task_push_y_test_data = LocalFilesystemToGCSOperator(
+       task_id="push_y_test_data_to_gcs",
+       gcp_conn_id="my-gcp-conn",
+       src="y_test.pkl",
+       dst="data/processed_data/y_test.pkl",
+       bucket="sepsis-prediction-mlops"
+    )
+
+    task_cleanup_files = PythonOperator(
+        task_id="clean_pickle_files",
+        python_callable=clean_pickle_files,
+    )
+
+    task_trigger_modelling_dag = TriggerDagRunOperator(
+        task_id="trigger_modelling_dag",
+        trigger_dag_id="model_data_and_store",
+    )
+
+    task_gcs_psv_to_gcs_csv >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
