@@ -1,7 +1,4 @@
 #  this is the configuration file, all the settings like model hyper parameters, storage links are stored here
-import numpy as np
-from sklearn.pipeline import make_pipeline
-
 # GCP bucket URL where the data is saved
 gsutil_URL= 'gs://sepsis-prediction-mlops'
 

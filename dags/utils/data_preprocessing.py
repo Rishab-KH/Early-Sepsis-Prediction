@@ -4,8 +4,7 @@ import numpy as np
 from pathlib import Path
 
 def util_data_preprocessing(df):
-
-    columns_drop={'Unnamed: 0','SBP','DBP',
+    columns_drop={'SBP','DBP',
                   'EtCO2','BaseExcess', 'HCO3',
                   'pH','PaCO2','Alkalinephos', 
                   'Calcium','Magnesium', 'Phosphate',

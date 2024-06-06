@@ -1,19 +1,21 @@
 from airflow import DAG
 from datetime import datetime, timedelta
 import pandas as pd
-import numpy as np
 import pickle
 import os
+import sys
 from airflow.operators.python import PythonOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GroupShuffleSplit
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
-import config.config as config
-from dags.utils.data_preprocessing import util_data_preprocessing 
 
+sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
+
+# Custom imports
+import dags.utils.config as config
+from dags.utils.data_preprocessing import util_data_preprocessing 
 
 DATA_DIR = config.DATA_DIR
 
