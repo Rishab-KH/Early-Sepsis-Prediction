@@ -1,15 +1,9 @@
 # import libraries
 import pandas as pd
 import numpy as np
-import logging
-import time
-import os
 from pathlib import Path
-import pickle
-from utils import logging_setup, config
 
-
-def data_preprocessing_function(df):
+def util_data_preprocessing(df):
 
     columns_drop={'Unnamed: 0','SBP','DBP',
                   'EtCO2','BaseExcess', 'HCO3',

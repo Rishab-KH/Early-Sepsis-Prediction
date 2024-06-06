@@ -12,10 +12,10 @@ from sklearn.model_selection import GroupShuffleSplit
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 import dags.utils.config as config
-from dags.utils.data_preprocessing import data_preprocessing_function 
+from dags.utils.data_preprocessing import util_data_preprocessing 
 
 
-data_dir = config.DATA_DIR
+DATA_DIR = config.DATA_DIR
 
 default_args = {
     "owner": 'airflow',
@@ -33,7 +33,7 @@ def load_data_from_pickle(obj_name):
     return obj
 
 def train_test_split():
-    df = pd.read_csv(data_dir, sep=",")
+    df = pd.read_csv(DATA_DIR, sep=",")
     train_inds, test_inds = next(GroupShuffleSplit(test_size=0.25, n_splits=2,).split(df, groups=df['Patient_ID']))
     df_train = df.iloc[train_inds] 
     df_test = df.iloc[test_inds]
@@ -50,7 +50,7 @@ def train_test_split():
 
 def data_preprocess(data_input, data_output):
     X_df = load_data_from_pickle(data_input)
-    X_preprocessed_df = data_preprocessing_function(X_df)
+    X_preprocessed_df = util_data_preprocessing(X_df)
     save_data_to_pickle(X_preprocessed_df, data_output)
 
 def scale_train_data():
