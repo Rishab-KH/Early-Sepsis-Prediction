@@ -115,11 +115,10 @@ def clean_pickle_files():
             os.remove(file_path)
             print(f"Deleted {file_path}")
 
-def branch_logic_schema_generation(**kwargs):
-    hook = GCSHook(gcp_conn_id='your_gcp_connection_id')
-    file_exists = hook.exists(bucket_name='sepsis-prediction-mlops', object='artifacts/schema_and_stats.json')
-    print("Yayy,"+file_exists)
-    
+def branch_logic_schema_generation():
+    hook = GCSHook(gcp_conn_id='my-gcp-conn')
+    file_exists = hook.exists(bucket_name='sepsis-prediction-mlops', object_name='artifacts/schema_and_stats.json')
+
     if file_exists:
         return 'validate_data_schema_and_stats'
     else:
@@ -146,15 +145,8 @@ with DAG(
     }
     )
 
-    # task_check_schema_exists = GCSObjectExistenceSensor(
-    # task_id='check_schema_exists',
-    # bucket='sepsis-prediction-mlops',
-    # object='artifacts/schema_and_stats.json',
-    # google_cloud_conn_id='my-gcp-conn' 
-    # )
-
     task_if_schema_generation_required = BranchPythonOperator(
-    task_id='if_schema_generation_required',
+    task_id='if_schema_exists',
     python_callable=branch_logic_schema_generation
     )
 
@@ -173,8 +165,8 @@ with DAG(
 
     task_data_schema_and_statastics_validation = PythonOperator(
         task_id='validate_data_schema_and_stats',
-        python_callable=schema_and_stats_validation
-
+        python_callable=schema_and_stats_validation,
+        trigger_rule='none_failed'
     )
 
     task_train_test_split = PythonOperator(
