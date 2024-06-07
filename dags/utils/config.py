@@ -14,3 +14,5 @@ NUM_SAMPLES=30000
 # test sample size
 TEST_SAMPLE_SIZE=2000
 
+STATS_SCHEMA_FILE = 'schema_and_stats.json'
+

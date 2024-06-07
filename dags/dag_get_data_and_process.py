@@ -10,22 +10,22 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GroupShuffleSplit
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
-from utils.Data_Validation import generate_and_save_schema_and_stats,validate_data
 import logging
-from utils.logger_config import setup_logging
-
-setup_logging()
-
-logger=logging.getLogger('DAG_Get_Data_and_Preprocess.py')
-
 
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
 import dags.utils.config as config
 from dags.utils.data_preprocessing import util_data_preprocessing 
+from dags.utils.logger_config import setup_logging
+from dags.utils.Data_Validation import generate_and_save_schema_and_stats,validate_data
+
+setup_logging()
+
+logger=logging.getLogger('DAG_Get_Data_and_Preprocess.py')
 
 DATA_DIR = config.DATA_DIR
+STATS_SCHEMA_FILE = config.STATS_SCHEMA_FILE
 
 default_args = {
     "owner": 'airflow',
@@ -51,19 +51,20 @@ def schema_stats_gen():
         logger.error(f"File not found: {DATA_DIR}. Error: {e}")
         raise ValueError("Failed to Load Data for Schema and Statstics Validation. Stopping DAG execution.")
     #STATS_SCHEMA_FILE = 'schema_and_stats.json'
-    generation_result=generate_and_save_schema_and_stats(df)
+    generation_result=generate_and_save_schema_and_stats(df, STATS_SCHEMA_FILE)
     if not generation_result:
         raise ValueError("Schema and Statstics Generation failed. Stopping DAG execution.")
 
-def Schema_and_Stats_Validation():
+def schema_and_stats_validation():
     try:
         df=pd.read_csv(DATA_DIR, sep=",")
         logger.info(f"Data loaded successfully.")
     except FileNotFoundError as e:
         logger.error(f"File not found: {DATA_DIR}. Error: {e}")
         raise ValueError("Failed to Load Data for Schema and Statstics Validation. Stopping DAG execution.")
-
-
+    validation_result=validate_data(df)
+    if not validation_result:
+        raise ValueError("Schema and Statstics Validation failed. Stopping DAG execution.")
 
 
 def train_test_split():
@@ -136,17 +137,16 @@ with DAG(
     )
 
     task_Schema_and_Statastics_Generation = PythonOperator(
-        task_id='Schema_and_Statstics_Generation',
+        task_id='schema_and_statstics_generation',
         python_callable=schema_stats_gen
 
     )
 
     task_Data_Schema_and_Statastics_Validation = PythonOperator(
-        task_id='Data_Schema_and_Statastics_Validation',
-        python_callable=Schema_and_Stats_Validation
+        task_id='data_schema_and_statastics_validation',
+        python_callable=schema_and_stats_validation
 
     )   
-
 
     task_train_test_split = PythonOperator(
         task_id='train_test_split',
@@ -215,6 +215,14 @@ with DAG(
        bucket="sepsis-prediction-mlops"
     )
 
+    task_push_generated_schema_data = LocalFilesystemToGCSOperator(
+       task_id="push_generated_schema_data_to_gcs",
+       gcp_conn_id="my-gcp-conn",
+       src=STATS_SCHEMA_FILE,
+       dst=f"artifacts/{STATS_SCHEMA_FILE}",
+       bucket="sepsis-prediction-mlops"
+    )
+
     task_cleanup_files = PythonOperator(
         task_id="clean_pickle_files",
         python_callable=clean_pickle_files,
@@ -225,4 +233,4 @@ with DAG(
         trigger_dag_id="model_data_and_store",
     )
 
-    task_gcs_psv_to_gcs_csv >> task_Schema_and_Statastics_Generation >> task_Data_Schema_and_Statastics_Validation >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
+    task_gcs_psv_to_gcs_csv >> task_Schema_and_Statastics_Generation >> task_push_generated_schema_data >> task_Data_Schema_and_Statastics_Validation >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag

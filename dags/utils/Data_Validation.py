@@ -5,12 +5,9 @@ from logger_config import setup_logging
 import numpy as np
 import os
 
-
 setup_logging()
 
 logger=logging.getLogger('Data_Validation.py')
-
-STATS_SCHEMA_FILE = 'schema_and_stats.json'
 
 def convert_to_serializable(value):
     """
@@ -28,7 +25,7 @@ def convert_to_serializable(value):
         return value.tolist()
     return value
 
-def generate_and_save_schema_and_stats(df, schema_file=STATS_SCHEMA_FILE):
+def generate_and_save_schema_and_stats(df, schema_file):
     """
     Generate the schema and statistics from a DataFrame and save them to a JSON file.
 
@@ -110,7 +107,7 @@ def generate_and_save_schema_and_stats(df, schema_file=STATS_SCHEMA_FILE):
         return False
         
 
-def load_schema_and_stats(schema_file=STATS_SCHEMA_FILE):
+def load_schema_and_stats(schema_file):
     """
     Load the schema and statistics from a JSON file.
 
@@ -128,8 +125,6 @@ def load_schema_and_stats(schema_file=STATS_SCHEMA_FILE):
     except Exception as e:
         logger.error(f"Error loading schema and statistics from {schema_file}: {e}")
         raise
-
-
 
 
 def validate_schema(df, schema):

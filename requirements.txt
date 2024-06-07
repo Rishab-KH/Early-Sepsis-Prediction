@@ -2,7 +2,3 @@ scikit-learn==1.2.2
 pandas
 numpy
 pytest
-logging.config
-logging
-json
-os

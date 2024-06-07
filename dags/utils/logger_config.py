@@ -1,7 +1,7 @@
 import logging
 import logging.config
 
-def setup_logging(log_file='Sepsis_Detection_Logs.log', log_level=logging.INFO):
+def setup_logging(log_file=f'Sepsis_Detection_Logs.log', log_level=logging.INFO):
 
     logging_config = {
         'version': 1,
