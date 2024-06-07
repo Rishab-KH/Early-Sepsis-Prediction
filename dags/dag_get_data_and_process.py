@@ -20,12 +20,14 @@ from dags.utils.data_preprocessing import util_data_preprocessing
 from dags.utils.logger_config import setup_logging
 from dags.utils.Data_Validation import generate_and_save_schema_and_stats,validate_data
 
-setup_logging()
-
-logger=logging.getLogger('DAG_Get_Data_and_Preprocess.py')
-
 DATA_DIR = config.DATA_DIR
 STATS_SCHEMA_FILE = config.STATS_SCHEMA_FILE
+
+logger = setup_logging(config.PROJECT_ROOT, __file__.split("/")[-1])
+
+# logger = logging.getLogger('DAG_Get_Data_and_Preprocess.py')
+
+
 
 default_args = {
     "owner": 'airflow',

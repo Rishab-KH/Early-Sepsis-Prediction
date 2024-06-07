@@ -1,3 +1,5 @@
+import os
+
 #  this is the configuration file, all the settings like model hyper parameters, storage links are stored here
 # GCP bucket URL where the data is saved
 gsutil_URL= 'gs://sepsis-prediction-mlops'
@@ -16,3 +18,4 @@ TEST_SAMPLE_SIZE=2000
 
 STATS_SCHEMA_FILE = 'schema_and_stats.json'
 
+PROJECT_ROOT = os.path.abspath(os.environ["AIRFLOW_HOME"])

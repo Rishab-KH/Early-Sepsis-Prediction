@@ -4,10 +4,13 @@ import logging
 from logger_config import setup_logging
 import numpy as np
 import os
+# Custom imports
+import dags.utils.config as config
 
-setup_logging()
+# setup_logging()
 
-logger=logging.getLogger('Data_Validation.py')
+# logger=logging.getLogger('Data_Validation.py')
+logger = setup_logging(config.PROJECT_ROOT, __file__.split("/")[-1])
 
 def convert_to_serializable(value):
     """
