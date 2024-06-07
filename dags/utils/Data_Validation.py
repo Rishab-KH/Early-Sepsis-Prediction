@@ -38,54 +38,7 @@ def generate_and_save_schema_and_stats(df, schema_file):
         df (pd.DataFrame): DataFrame from which to infer the schema and statistics.
         schema_file (str): Path to save the schema and statistics.
     """
-    try:
-        if os.path.exists(schema_file):
-            logger.info(f"Schema and statistics file already exists at {schema_file}.")
-            return True        
-        # schema = {
-        # "HR": "float64",
-        # "O2Sat": "float64",
-        # "Temp": "float64",
-        # "SBP": "float64",
-        # "MAP": "float64",
-        # "DBP": "float64",
-        # "Resp": "float64",
-        # "EtCO2": "float64",
-        # "BaseExcess": "float64",
-        # "HCO3": "float64",
-        # "FiO2": "float64",
-        # "pH": "float64",
-        # "PaCO2": "float64",
-        # "SaO2": "float64",
-        # "AST": "float64",
-        # "BUN": "float64",
-        # "Alkalinephos": "float64",
-        # "Calcium": "float64",
-        # "Chloride": "float64",
-        # "Creatinine": "float64",
-        # "Bilirubin_direct": "float64",
-        # "Glucose": "float64",
-        # "Lactate": "float64",
-        # "Magnesium": "float64",
-        # "Phosphate": "float64",
-        # "Potassium": "float64",
-        # "Bilirubin_total": "float64",
-        # "TroponinI": "float64",
-        # "Hct": "float64",
-        # "Hgb": "float64",
-        # "PTT": "float64",
-        # "WBC": "float64",
-        # "Fibrinogen": "float64",
-        # "Platelets": "float64",
-        # "Age": "float64",
-        # "Gender": "int64",
-        # "Unit1": "float64",
-        # "Unit2": "float64",
-        # "HospAdmTime": "float64",
-        # "ICULOS": "int64",
-        # "SepsisLabel": "int64",
-        # "Patient_ID": "int64"  # Assuming Patient_ID is extracted as a string
-        # }
+    try: 
         schema = {col: str(df[col].dtype) for col in df.columns}
         stats = {}
         for col in df.columns:
