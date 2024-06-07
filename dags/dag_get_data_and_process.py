@@ -17,15 +17,17 @@ sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 # Custom imports
 import dags.utils.config as config
 from dags.utils.data_preprocessing import util_data_preprocessing 
-from dags.utils.logger_config import setup_logging
+from dags.utils.log_config import setup_logging
 from dags.utils.Data_Validation import generate_and_save_schema_and_stats,validate_data
-
-setup_logging()
-
-logger=logging.getLogger('DAG_Get_Data_and_Preprocess.py')
 
 DATA_DIR = config.DATA_DIR
 STATS_SCHEMA_FILE = config.STATS_SCHEMA_FILE
+
+logger = setup_logging(config.PROJECT_ROOT, "dag_get_data_and_preprocess.py")
+
+# logger = logging.getLogger('DAG_Get_Data_and_Preprocess.py')
+
+
 
 default_args = {
     "owner": 'airflow',
@@ -139,7 +141,14 @@ with DAG(
     task_Schema_and_Statastics_Generation = PythonOperator(
         task_id='schema_and_statstics_generation',
         python_callable=schema_stats_gen
+    )
 
+    task_push_generated_schema_data = LocalFilesystemToGCSOperator(
+       task_id="push_generated_schema_data_to_gcs",
+       gcp_conn_id="my-gcp-conn",
+       src=STATS_SCHEMA_FILE,
+       dst=f"artifacts/{STATS_SCHEMA_FILE}",
+       bucket="sepsis-prediction-mlops"
     )
 
     task_Data_Schema_and_Statastics_Validation = PythonOperator(
@@ -212,14 +221,6 @@ with DAG(
        gcp_conn_id="my-gcp-conn",
        src="y_test.pkl",
        dst="data/processed_data/y_test.pkl",
-       bucket="sepsis-prediction-mlops"
-    )
-
-    task_push_generated_schema_data = LocalFilesystemToGCSOperator(
-       task_id="push_generated_schema_data_to_gcs",
-       gcp_conn_id="my-gcp-conn",
-       src=STATS_SCHEMA_FILE,
-       dst=f"artifacts/{STATS_SCHEMA_FILE}",
        bucket="sepsis-prediction-mlops"
     )
 
