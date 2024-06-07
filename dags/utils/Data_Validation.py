@@ -1,16 +1,18 @@
 import pandas as pd
 import json
 import logging
-from logger_config import setup_logging
+from dags.utils.log_config import setup_logging
 import numpy as np
 import os
 # Custom imports
 import dags.utils.config as config
+import gcsfs
+import json
 
 # setup_logging()
 
 # logger=logging.getLogger('Data_Validation.py')
-logger = setup_logging(config.PROJECT_ROOT, __file__.split("/")[-1])
+logger = setup_logging(config.PROJECT_ROOT, "Data_Validation.py")
 
 def convert_to_serializable(value):
     """
@@ -40,50 +42,51 @@ def generate_and_save_schema_and_stats(df, schema_file):
         if os.path.exists(schema_file):
             logger.info(f"Schema and statistics file already exists at {schema_file}.")
             return True        
-        schema = {
-        "HR": "float64",
-        "O2Sat": "float64",
-        "Temp": "float64",
-        "SBP": "float64",
-        "MAP": "float64",
-        "DBP": "float64",
-        "Resp": "float64",
-        "EtCO2": "float64",
-        "BaseExcess": "float64",
-        "HCO3": "float64",
-        "FiO2": "float64",
-        "pH": "float64",
-        "PaCO2": "float64",
-        "SaO2": "float64",
-        "AST": "float64",
-        "BUN": "float64",
-        "Alkalinephos": "float64",
-        "Calcium": "float64",
-        "Chloride": "float64",
-        "Creatinine": "float64",
-        "Bilirubin_direct": "float64",
-        "Glucose": "float64",
-        "Lactate": "float64",
-        "Magnesium": "float64",
-        "Phosphate": "float64",
-        "Potassium": "float64",
-        "Bilirubin_total": "float64",
-        "TroponinI": "float64",
-        "Hct": "float64",
-        "Hgb": "float64",
-        "PTT": "float64",
-        "WBC": "float64",
-        "Fibrinogen": "float64",
-        "Platelets": "float64",
-        "Age": "float64",
-        "Gender": "int64",
-        "Unit1": "float64",
-        "Unit2": "float64",
-        "HospAdmTime": "float64",
-        "ICULOS": "int64",
-        "SepsisLabel": "int64",
-        "Patient_ID": "int64"  # Assuming Patient_ID is extracted as a string
-        }
+        # schema = {
+        # "HR": "float64",
+        # "O2Sat": "float64",
+        # "Temp": "float64",
+        # "SBP": "float64",
+        # "MAP": "float64",
+        # "DBP": "float64",
+        # "Resp": "float64",
+        # "EtCO2": "float64",
+        # "BaseExcess": "float64",
+        # "HCO3": "float64",
+        # "FiO2": "float64",
+        # "pH": "float64",
+        # "PaCO2": "float64",
+        # "SaO2": "float64",
+        # "AST": "float64",
+        # "BUN": "float64",
+        # "Alkalinephos": "float64",
+        # "Calcium": "float64",
+        # "Chloride": "float64",
+        # "Creatinine": "float64",
+        # "Bilirubin_direct": "float64",
+        # "Glucose": "float64",
+        # "Lactate": "float64",
+        # "Magnesium": "float64",
+        # "Phosphate": "float64",
+        # "Potassium": "float64",
+        # "Bilirubin_total": "float64",
+        # "TroponinI": "float64",
+        # "Hct": "float64",
+        # "Hgb": "float64",
+        # "PTT": "float64",
+        # "WBC": "float64",
+        # "Fibrinogen": "float64",
+        # "Platelets": "float64",
+        # "Age": "float64",
+        # "Gender": "int64",
+        # "Unit1": "float64",
+        # "Unit2": "float64",
+        # "HospAdmTime": "float64",
+        # "ICULOS": "int64",
+        # "SepsisLabel": "int64",
+        # "Patient_ID": "int64"  # Assuming Patient_ID is extracted as a string
+        # }
+        schema = {col: str(df[col].dtype) for col in df.columns}
         stats = {}
         for col in df.columns:
             if pd.api.types.is_numeric_dtype(df[col]):
@@ -110,7 +113,7 @@ def generate_and_save_schema_and_stats(df, schema_file):
         return False
         
 
-def load_schema_and_stats(schema_file):
+def load_schema_and_stats(schema_file=config.STATS_SCHEMA_FILE_GCS):
     """
     Load the schema and statistics from a JSON file.
 
@@ -121,7 +124,12 @@ def load_schema_and_stats(schema_file):
         dict: Loaded schema and statistics.
     """
     try:
-        with open(schema_file, 'r') as f:
+        # with open(schema_file, 'r') as f:
+        #     schema_and_stats = json.load(f)
+
+        gcs_file_system = gcsfs.GCSFileSystem(project=config.GCP_PROJECT_NAME)
+        gcs_json_path = config.STATS_SCHEMA_FILE_GCS
+        with gcs_file_system.open(gcs_json_path) as f:
             schema_and_stats = json.load(f)
         logger.info(f"Schema and statistics loaded from {schema_file}.")
         return schema_and_stats
