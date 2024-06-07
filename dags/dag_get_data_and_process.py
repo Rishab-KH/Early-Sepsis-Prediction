@@ -10,6 +10,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GroupShuffleSplit
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from utils.Data_Validation import generate_and_save_schema_and_stats,validate_data
+import logging
+from utils.logger_config import setup_logging
+
+setup_logging()
+
+logger=logging.getLogger('DAG_Get_Data_and_Preprocess.py')
+
 
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
@@ -33,6 +41,30 @@ def load_data_from_pickle(obj_name):
     with open(obj_name, 'rb') as file:
         obj = pickle.load(file)
     return obj
+
+
+def schema_stats_gen():
+    try:
+        df=pd.read_csv(DATA_DIR, sep=",")
+        logger.info(f"Data loaded successfully.")
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {DATA_DIR}. Error: {e}")
+        raise ValueError("Failed to Load Data for Schema and Statstics Validation. Stopping DAG execution.")
+    #STATS_SCHEMA_FILE = 'schema_and_stats.json'
+    generation_result=generate_and_save_schema_and_stats(df)
+    if not generation_result:
+        raise ValueError("Schema and Statstics Generation failed. Stopping DAG execution.")
+
+def Schema_and_Stats_Validation():
+    try:
+        df=pd.read_csv(DATA_DIR, sep=",")
+        logger.info(f"Data loaded successfully.")
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {DATA_DIR}. Error: {e}")
+        raise ValueError("Failed to Load Data for Schema and Statstics Validation. Stopping DAG execution.")
+
+
+
 
 def train_test_split():
     df = pd.read_csv(DATA_DIR, sep=",")
@@ -102,6 +134,19 @@ with DAG(
         }
     }
     )
+
+    task_Schema_and_Statastics_Generation = PythonOperator(
+        task_id='Schema_and_Statstics_Generation',
+        python_callable=schema_stats_gen
+
+    )
+
+    task_Data_Schema_and_Statastics_Validation = PythonOperator(
+        task_id='Data_Schema_and_Statastics_Validation',
+        python_callable=Schema_and_Stats_Validation
+
+    )   
+
 
     task_train_test_split = PythonOperator(
         task_id='train_test_split',
@@ -180,4 +225,4 @@ with DAG(
         trigger_dag_id="model_data_and_store",
     )
 
-    task_gcs_psv_to_gcs_csv >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
+    task_gcs_psv_to_gcs_csv >> task_Schema_and_Statastics_Generation >> task_Data_Schema_and_Statastics_Validation >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
