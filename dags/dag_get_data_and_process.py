@@ -10,9 +10,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GroupShuffleSplit
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
-import logging
-from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor
 from airflow.operators.python import BranchPythonOperator
+from airflow.providers.google.cloud.hooks.gcs import GCSHook
 
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
@@ -26,9 +25,6 @@ DATA_DIR = config.DATA_DIR
 STATS_SCHEMA_FILE = config.STATS_SCHEMA_FILE
 
 logger = setup_logging(config.PROJECT_ROOT, "dag_get_data_and_preprocess.py")
-
-# logger = logging.getLogger('DAG_Get_Data_and_Preprocess.py')
-
 
 
 default_args = {
@@ -120,8 +116,10 @@ def clean_pickle_files():
             print(f"Deleted {file_path}")
 
 def branch_logic_schema_generation(**kwargs):
-    ti = kwargs['ti']
-    file_exists = ti.xcom_pull(task_ids='check_schema_exists')
+    hook = GCSHook(gcp_conn_id='your_gcp_connection_id')
+    file_exists = hook.exists(bucket_name='sepsis-prediction-mlops', object='artifacts/schema_and_stats.json')
+    print("Yayy,"+file_exists)
+    
     if file_exists:
         return 'validate_data_schema_and_stats'
     else:
@@ -148,12 +146,12 @@ with DAG(
     }
     )
 
-    task_check_schema_exists = GCSObjectExistenceSensor(
-    task_id='check_schema_exists',
-    bucket='sepsis-prediction-mlops',
-    object='artifacts/schema_and_stats.json',
-    google_cloud_conn_id='my-gcp-conn' 
-    )
+    # task_check_schema_exists = GCSObjectExistenceSensor(
+    # task_id='check_schema_exists',
+    # bucket='sepsis-prediction-mlops',
+    # object='artifacts/schema_and_stats.json',
+    # google_cloud_conn_id='my-gcp-conn' 
+    # )
 
     task_if_schema_generation_required = BranchPythonOperator(
     task_id='if_schema_generation_required',
@@ -256,6 +254,6 @@ with DAG(
         trigger_dag_id="model_data_and_store",
     )
 
-    task_gcs_psv_to_gcs_csv >> task_check_schema_exists >> task_if_schema_generation_required
+    task_gcs_psv_to_gcs_csv >> task_if_schema_generation_required
     task_if_schema_generation_required >> task_data_schema_and_statastics_validation >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
     task_if_schema_generation_required >> task_schema_and_statastics_generation >> task_push_generated_schema_data >> task_data_schema_and_statastics_validation >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
