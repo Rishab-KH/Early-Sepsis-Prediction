@@ -112,7 +112,7 @@ with DAG(
         provide_context=True,
     )
 
-    task_email_validation_failed = EmailOperator(
+    task_send_email_validation_failed = EmailOperator(
         task_id='email_validation_d_failed',
         to='derilraju@gmail.com',
         subject='Airflow Alert',
