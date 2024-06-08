@@ -35,7 +35,7 @@ def schema_and_stats_validation():
         logger.error(f"File not found: {DATA_DIR}. Error: {e}")
         raise ValueError("Failed to Load Data for Schema and Statstics Validation. Stopping DAG execution.")
     validation_result=validate_data(df)
-    if validation_result:
+    if not validation_result:
         return 'train_test_split'
     return 'email_validation_failed'
     # if not validation_result:
