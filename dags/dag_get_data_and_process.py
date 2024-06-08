@@ -1,13 +1,9 @@
 from airflow import DAG
 from datetime import datetime, timedelta
-import pandas as pd
-import pickle
 import os
 import sys
 from airflow.operators.python import PythonOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import GroupShuffleSplit
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python import BranchPythonOperator
@@ -18,9 +14,13 @@ sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
 import dags.utils.config as config
-from dags.utils.data_preprocessing import util_data_preprocessing 
+from dags.utils.helper import clean_pickle_files
+from dags.utils.data_preprocessing import data_preprocess_pipeline 
+from dags.utils.data_split_utils import train_test_split
+from dags.utils.data_scale_utils import scale_train_data, scale_test_data
 from dags.utils.log_config import setup_logging
-from dags.utils.Data_Validation import generate_and_save_schema_and_stats,validate_data
+from dags.utils.schema_stats_utils import schema_stats_gen, schema_and_stats_validation
+
 
 DATA_DIR = config.DATA_DIR
 STATS_SCHEMA_FILE = config.STATS_SCHEMA_FILE
@@ -34,91 +34,22 @@ default_args = {
     "retry_delay": timedelta(seconds=10),
 }
 
-def save_data_to_pickle(obj, obj_name):
-    with open(obj_name, 'wb') as file:
-        pickle.dump(obj, file)
-
-def load_data_from_pickle(obj_name):
-    with open(obj_name, 'rb') as file:
-        obj = pickle.load(file)
-    return obj
-
-
-def schema_stats_gen():
-    try:
-        df=pd.read_csv(DATA_DIR, sep=",")
-        logger.info(f"Data loaded successfully.")
-    except FileNotFoundError as e:
-        logger.error(f"File not found: {DATA_DIR}. Error: {e}")
-        raise ValueError("Failed to Load Data for Schema and Statstics Validation. Stopping DAG execution.")
-
-    generation_result=generate_and_save_schema_and_stats(df, STATS_SCHEMA_FILE)
-    if not generation_result:
-        raise ValueError("Schema and Statstics Generation failed. Stopping DAG execution.")
-
-def schema_and_stats_validation():
-    try:
-        df=pd.read_csv(DATA_DIR, sep=",")
-        logger.info(f"Data loaded successfully.")
-    except FileNotFoundError as e:
-        logger.error(f"File not found: {DATA_DIR}. Error: {e}")
-        raise ValueError("Failed to Load Data for Schema and Statstics Validation. Stopping DAG execution.")
-    validation_result=validate_data(df)
-    if not validation_result:
-        raise ValueError("Schema and Statstics Validation failed. Stopping DAG execution.")
-
-
-def train_test_split():
-    df = pd.read_csv(DATA_DIR, sep=",")
-    train_inds, test_inds = next(GroupShuffleSplit(test_size=0.25, n_splits=2,).split(df, groups=df['Patient_ID']))
-    df_train = df.iloc[train_inds] 
-    df_test = df.iloc[test_inds]
-
-    X_train = df_train.drop('SepsisLabel', axis=1)
-    X_test = df_test.drop('SepsisLabel', axis=1)
-    y_train = df_train['SepsisLabel']
-    y_test = df_test['SepsisLabel']
-
-    save_data_to_pickle(X_train, 'X_train.pkl')
-    save_data_to_pickle(X_test, 'X_test.pkl')
-    save_data_to_pickle(y_train, 'y_train.pkl')
-    save_data_to_pickle(y_test, 'y_test.pkl')
-
-def data_preprocess(data_input, data_output):
-    X_df = load_data_from_pickle(data_input)
-    X_preprocessed_df = util_data_preprocessing(X_df)
-    save_data_to_pickle(X_preprocessed_df, data_output)
-
-def scale_train_data():
-    X_train_processed_df = load_data_from_pickle('X_train_processed.pkl')
-    scaler = StandardScaler()
-    columns_to_scale = ['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine', 'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets']
-    X_train_processed_df[columns_to_scale] = scaler.fit_transform(X_train_processed_df[columns_to_scale])
-    
-    save_data_to_pickle(X_train_processed_df, 'X_train_processed_scaled.pkl')
-    save_data_to_pickle(scaler, 'scaler.pkl')
-
-def scale_test_data():
-    X_test_processed_df = load_data_from_pickle('X_test_processed.pkl')
-    scaler = load_data_from_pickle('scaler.pkl')
-
-    columns_to_scale = ['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine', 'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets']
-    X_test_processed_df[columns_to_scale] = scaler.transform(X_test_processed_df[columns_to_scale])
-
-    save_data_to_pickle(X_test_processed_df, 'X_test_processed_scaled.pkl')
-
-def clean_pickle_files():
-    directory = os.getcwd()
-    files = os.listdir(directory)
-    for file in files:
-        if file.endswith('.pkl'):
-            file_path = os.path.join(directory, file)
-            os.remove(file_path)
-            print(f"Deleted {file_path}")
+# Log the GCP bucket being used
+BUCKET = config.bucket
+logger.info(f"Bucket used in GCP {BUCKET}")
 
 def branch_logic_schema_generation():
-    hook = GCSHook(gcp_conn_id='my-gcp-conn')
-    file_exists = hook.exists(bucket_name='sepsis-prediction-mlops', object_name='artifacts/schema_and_stats.json')
+    """
+    Determines the next task in a workflow based on the existence of a schema and stats file in a GCS bucket.
+
+    Args:
+        None
+
+    Returns:
+        str: The name of the next task to execute, either 'validate_data_schema_and_stats' or 'generate_schema_and_stats'.
+    """
+    hook = GCSHook(gcp_conn_id=config.GCP_CONN_ID)
+    file_exists = hook.exists(bucket_name=config.bucket, object_name='artifacts/schema_and_stats.json')
 
     if file_exists:
         return 'validate_data_schema_and_stats'
@@ -168,7 +99,7 @@ with DAG(
        gcp_conn_id="my-gcp-conn",
        src=STATS_SCHEMA_FILE,
        dst=f"artifacts/{STATS_SCHEMA_FILE}",
-       bucket="sepsis-prediction-mlops"
+       bucket=BUCKET
     )
 
     task_data_schema_and_statastics_validation = PythonOperator(
@@ -184,13 +115,13 @@ with DAG(
 
     task_X_train_data_preprocessing = PythonOperator(
         task_id='preprocess_X_train',
-        python_callable=data_preprocess,
+        python_callable=data_preprocess_pipeline,
         op_kwargs={'data_input': 'X_train.pkl', 'data_output':'X_train_processed.pkl'}
     )
 
     task_X_test_data_preprocessing = PythonOperator(
         task_id='preprocess_X_test',
-        python_callable=data_preprocess,
+        python_callable=data_preprocess_pipeline,
         op_kwargs={'data_input': 'X_test.pkl', 'data_output':'X_test_processed.pkl'}
     )
 
@@ -209,7 +140,7 @@ with DAG(
        gcp_conn_id="my-gcp-conn",
        src="scaler.pkl",
        dst="artifacts/scaler.pkl",
-       bucket="sepsis-prediction-mlops"
+       bucket=BUCKET
     )
 
     task_push_X_train_data = LocalFilesystemToGCSOperator(
@@ -217,7 +148,7 @@ with DAG(
        gcp_conn_id="my-gcp-conn",
        src="X_train_processed_scaled.pkl",
        dst="data/processed_data/X_train.pkl",
-       bucket="sepsis-prediction-mlops"
+       bucket=BUCKET
     )
 
     task_push_X_test_data = LocalFilesystemToGCSOperator(
@@ -225,7 +156,7 @@ with DAG(
        gcp_conn_id="my-gcp-conn",
        src="X_test_processed_scaled.pkl",
        dst="data/processed_data/X_test.pkl",
-       bucket="sepsis-prediction-mlops"
+       bucket=BUCKET
     )
 
     task_push_y_train_data = LocalFilesystemToGCSOperator(
@@ -233,7 +164,7 @@ with DAG(
        gcp_conn_id="my-gcp-conn",
        src="y_train.pkl",
        dst="data/processed_data/y_train.pkl",
-       bucket="sepsis-prediction-mlops"
+       bucket=BUCKET
     )
 
     task_push_y_test_data = LocalFilesystemToGCSOperator(
@@ -241,12 +172,13 @@ with DAG(
        gcp_conn_id="my-gcp-conn",
        src="y_test.pkl",
        dst="data/processed_data/y_test.pkl",
-       bucket="sepsis-prediction-mlops"
+       bucket=BUCKET
     )
 
     task_cleanup_files = PythonOperator(
         task_id="clean_pickle_files",
         python_callable=clean_pickle_files,
+        op_kwargs={"directory": os.getcwd()}
     )
 
     task_trigger_modelling_dag = TriggerDagRunOperator(
