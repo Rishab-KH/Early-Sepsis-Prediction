@@ -34,9 +34,9 @@ def schema_and_stats_validation(ti):
     except FileNotFoundError as e:
         logger.error(f"File not found: {DATA_DIR}. Error: {e}")
         raise ValueError("Failed to Load Data for Schema and Statstics Validation. Stopping DAG execution.")
-    validation_result=validate_data(df)
-    ti.xcom_push(key='custom_key', value='custom_value')
-    if not validation_result:
+    validation_result, validation_message = validate_data(df)
+    ti.xcom_push(key='validation_message', value=validation_message)
+    if validation_result:
         return 'train_test_split'
     return 'email_validation_failed'
     # if not validation_result:
