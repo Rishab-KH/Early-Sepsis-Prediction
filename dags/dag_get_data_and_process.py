@@ -52,7 +52,7 @@ def branch_logic_schema_generation():
     file_exists = hook.exists(bucket_name=config.bucket, object_name='artifacts/schema_and_stats.json')
 
     if file_exists:
-        return 'validate_data_schema_and_stats'
+        return 'if_validate_data_schema_and_stats'
     else:
         return 'generate_schema_and_stats'
 
@@ -116,7 +116,8 @@ with DAG(
 
     task_train_test_split = PythonOperator(
         task_id='train_test_split',
-        python_callable=train_test_split
+        python_callable=train_test_split,
+        trigger_rule='none_failed'
     )
 
     task_X_train_data_preprocessing = PythonOperator(
