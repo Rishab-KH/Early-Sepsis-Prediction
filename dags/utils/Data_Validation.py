@@ -1,18 +1,19 @@
+# Import libraries
 import pandas as pd
 import json
 import logging
 from dags.utils.log_config import setup_logging
 import numpy as np
 import os
+
 # Custom imports
 import dags.utils.config as config
 import gcsfs
 import json
 
-# setup_logging()
+# setup logger
 
-# logger=logging.getLogger('Data_Validation.py')
-logger = setup_logging(config.PROJECT_ROOT, "Data_Validation.py")
+logger = setup_logging(config.PROJECT_ROOT, "data_validation.py")
 
 def convert_to_serializable(value):
     """
@@ -24,11 +25,16 @@ def convert_to_serializable(value):
     Returns:
         The converted value.
     """
-    if isinstance(value, (np.integer, np.floating)):
-        return value.item()
-    if isinstance(value, np.ndarray):
-        return value.tolist()
-    return value
+
+    try:
+        if isinstance(value, (np.integer, np.floating)):
+            return value.item()
+        if isinstance(value, np.ndarray):
+            return value.tolist()
+        return value
+    
+    except Exception as ex:
+        logger.error(f"Error in converting JSON to serializable format {ex}")
 
 def generate_and_save_schema_and_stats(df, schema_file):
     """
