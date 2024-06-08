@@ -12,6 +12,7 @@ from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesyste
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python import BranchPythonOperator
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
+from airflow.operators.email import EmailOperator
 
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
@@ -134,6 +135,13 @@ with DAG(
     template_searchpath=["/opt/airflow/dags/utils"]
 ) as dag:
 
+    send_email = EmailOperator(
+        task_id='send_email',
+        to='derilraju@gmail.com',
+        subject='Airflow Alert',
+        html_content='<p>Your Airflow job has finished.</p>'
+    )
+
     task_gcs_psv_to_gcs_csv = BigQueryInsertJobOperator(
     task_id="merge_data_from_psv_to_csv",
     gcp_conn_id="my-gcp-conn",
@@ -246,6 +254,6 @@ with DAG(
         trigger_dag_id="model_data_and_store",
     )
 
-    task_gcs_psv_to_gcs_csv >> task_if_schema_generation_required
+    send_email >> task_gcs_psv_to_gcs_csv >> task_if_schema_generation_required
     task_if_schema_generation_required >> task_data_schema_and_statastics_validation >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
     task_if_schema_generation_required >> task_schema_and_statastics_generation >> task_push_generated_schema_data >> task_data_schema_and_statastics_validation >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag

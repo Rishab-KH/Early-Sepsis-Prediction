@@ -86,7 +86,7 @@ x-airflow-common:
     - ./plugins:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
   env_file:
-  - ./development.env
+  - ./airflow-smtp.env
   depends_on:
     &airflow-common-depends-on
     redis:
