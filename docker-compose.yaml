@@ -64,13 +64,13 @@ x-airflow-common:
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
-    AIRFLOW__SMTP__SMTP_HOST: '${AIRFLOW_SMTP_SMTP_HOST}'
-    AIRFLOW__SMTP__SMTP_STARTTLS: '${AIRFLOW_SMTP_SMTP_STARTTLS}'
-    AIRFLOW__SMTP__SMTP_SSL: '${AIRFLOW_SMTP_SMTP_SSL}'
-    AIRFLOW__SMTP__SMTP_USER: '${AIRFLOW_SMTP_SMTP_USER}'
-    AIRFLOW__SMTP__SMTP_PORT: '${AIRFFLOW_SMTP_SMTP_PORT}'
-    AIRFLOW__SMTP__SMTP_PASSWORD: '${AIRFLOW_SMTP_SMTP_PASSWORD}'
-    AIRFLOW__SMTP__SMTP_MAIL_FROM: '${AIRFLOW_SMTP_SMTP_MAIL_FROM}'
+    # AIRFLOW__SMTP__SMTP_HOST: '${AIRFLOW_SMTP_SMTP_HOST}'
+    # AIRFLOW__SMTP__SMTP_STARTTLS: '${AIRFLOW_SMTP_SMTP_STARTTLS}'
+    # AIRFLOW__SMTP__SMTP_SSL: '${AIRFLOW_SMTP_SMTP_SSL}'
+    # AIRFLOW__SMTP__SMTP_USER: '${AIRFLOW_SMTP_SMTP_USER}'
+    # AIRFLOW__SMTP__SMTP_PORT: '${AIRFFLOW_SMTP_SMTP_PORT}'
+    # AIRFLOW__SMTP__SMTP_PASSWORD: '${AIRFLOW_SMTP_SMTP_PASSWORD}'
+    # AIRFLOW__SMTP__SMTP_MAIL_FROM: '${AIRFLOW_SMTP_SMTP_MAIL_FROM}'
     # yamllint disable rule:line-length
     # Use simple http server on scheduler for health checks
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
@@ -85,6 +85,8 @@ x-airflow-common:
     - ./config:/opt/airflow/config
     - ./plugins:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
+  env_file:
+  - ./development.env
   depends_on:
     &airflow-common-depends-on
     redis:
