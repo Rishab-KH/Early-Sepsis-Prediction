@@ -27,7 +27,7 @@ def schema_stats_gen():
     if not generation_result:
         raise ValueError("Schema and Statstics Generation failed. Stopping DAG execution.")
 
-def schema_and_stats_validation():
+def schema_and_stats_validation(ti):
     try:
         df=pd.read_csv(DATA_DIR, sep=",")
         logger.info(f"Data loaded successfully.")
@@ -35,6 +35,7 @@ def schema_and_stats_validation():
         logger.error(f"File not found: {DATA_DIR}. Error: {e}")
         raise ValueError("Failed to Load Data for Schema and Statstics Validation. Stopping DAG execution.")
     validation_result=validate_data(df)
+    ti.xcom_push(key='custom_key', value='custom_value')
     if not validation_result:
         return 'train_test_split'
     return 'email_validation_failed'
