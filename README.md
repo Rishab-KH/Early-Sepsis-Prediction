@@ -52,9 +52,59 @@ DAG-1 comprises 17 distinct processes, each designed to enhance the quality and 
 
 ## Installation
 
+You can directly view our server hosted Airflow instance [here](http://35.193.213.112:8080/home)
+Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu) for credentials
+
 ### Dependencies
 
-The entire project can be run just using Docker. Install it here https://docs.docker.com/engine/install/ 
+The entire project can be run just using Docker. Install it [here](https://docs.docker.com/engine/install/) 
+
+### Steps
+
+Clone the repository:
+```shell
+git clone https://github.com/Rishab-KH/IE7374-Sepsis-Classification.git
+```
+
+You will need a `development.env` file in your root directory which has details about the SMTP server and Airflow connections to GCP.
+
+Below is a template how it might look like
+
+```shell
+AIRFLOW_UID=50000
+AIRFLOW__SMTP__SMTP_HOST=<smtp_host>
+AIRFLOW__SMTP__SMTP_STARTTLS=True
+AIRFLOW__SMTP__SMTP_SSL=False
+AIRFLOW__SMTP__SMTP_USER=<your_email>
+AIRFLOW__SMTP__SMTP_PASSWORD=<your app password>
+AIRFLOW__SMTP__SMTP_PORT=<smtp_port>
+AIRFLOW__SMTP__SMTP_MAIL_FROM=<your_email>
+```
+
+Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu)
+ for the `development.env` that we are using
+
+To build the docker image:
+```shell
+docker compose build
+```
+
+To Run the docker image:
+```shell
+docker compose up
+```
+
+To Run the docker image in background:
+```shell
+docker compose up -d
+```
+
+To stop the docker image:
+```shell
+docker compose down
+```
+
+Make sure to run the above `docker compose` commands inside your project root, i.e wherever the `docker-compose.yml` file is placed
 
 
 
