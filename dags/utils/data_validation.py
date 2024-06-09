@@ -107,16 +107,20 @@ def validate_schema(df, schema):
 
     Returns:
         bool: True if schema is valid, False otherwise.
+        err_msg (str): Error message, if any else None
     """
+    err_msg = None
     for column, dtype in schema.items():
         if column not in df.columns:
-            logger.error(f"Missing column: {column}")
-            return False
+            err_msg = f"Missing column: {column}\n"
+            logger.error(err_msg)
+            return False, err_msg
         if str(df[column].dtype) != dtype:
-            logger.error(f"Invalid type for column {column}. Expected {dtype}, got {df[column].dtype}")
-            return False
+            err_msg = f"Invalid type for column {column}. Expected {dtype}, got {df[column].dtype}"
+            logger.error(err_msg)
+            return False, err_msg
     logger.info("Schema validation passed.")
-    return True
+    return True, err_msg
 
 def validate_statistics(df, stats):
     """
@@ -128,17 +132,21 @@ def validate_statistics(df, stats):
 
     Returns:
         bool: True if statistics are valid, False otherwise.
+        err_msg (str): Error message, if any else None
     """
+    err_msg = None
     try:
         for col, stat in stats.items():
             if col not in df.columns:
-                logger.error(f"Missing column: {col}")
-                return False
+                err_msg = f"Missing column: {col}"
+                logger.error(err_msg)
+                return False, err_msg
             
             if col == 'Patient_ID':
                 if df[col].isnull().any():
-                    logger.error("The 'patient_id' column cannot have null values.")
-                    return False
+                    err_msg = "The 'patient_id' column cannot have null values."
+                    logger.error(err_msg)
+                    return False, err_msg
                 continue
 
             if 'min' in stat and 'max' in stat:
@@ -173,10 +181,11 @@ def validate_statistics(df, stats):
                         logger.warning(f"Column {col} unique values anomaly: {unique_values} != {stat['unique_values']}")
 
         logger.info("Statistical validation passed.")
-        return True
+        return True, err_msg
     except Exception as e:
-        logger.error(f"Error during statistical validation: {e}")
-        return False
+        err_msg = f"Error during statistical validation: {e}"
+        logger.error(err_msg)
+        return False, err_msg
 
 
 def validate_data(df):
@@ -188,12 +197,10 @@ def validate_data(df):
 
     Returns:
         bool: True if validation passes, False if validation fails.
+        err_msg (str): Error message, if any else None
     """
+    err_msg = None
     try:
-        # Load data
-        #df = pd.read_csv(file_path)
-        #logger.info(f"Data loaded successfully.")
-
         # Load schema and statistics
         schema_and_stats = load_schema_and_stats()
         logger.info(f"schema_and_stats.json loaded successfully.")
@@ -201,17 +208,22 @@ def validate_data(df):
         stats = schema_and_stats['statistics']
 
         # Validate schema
-        if not validate_schema(df, schema):
-            logger.error("Schema validation failed.")
-            return False
+        validate_schema_result, validate_schema_msg = validate_schema(df, schema)
+        if not validate_schema_result:
+            err_msg = f"Schema validation failed: {validate_schema_msg}"
+            logger.error(err_msg)
+            return False, err_msg
 
         # Validate statistics
-        if not validate_statistics(df, stats):
-            logger.error("Statistical validation failed.")
-            return False
+        validate_statistics_result, validate_statistics_msg = validate_statistics(df, schema)
+        if not validate_statistics_result:
+            err_msg = f"Statistical validation failed: {validate_statistics_msg}"
+            logger.error(err_msg)
+            return False, err_msg
 
         logger.info("Data validation passed.")
-        return True
+        return True, err_msg
     except Exception as e:
-        logger.error(f"Error during data validation: {e}")
-        return False
+        err_msg = f"Error during data validation: {e}"
+        logger.error(err_msg)
+        return False, err_msg
