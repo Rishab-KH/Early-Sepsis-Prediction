@@ -14,6 +14,22 @@ Link to dataset used - https://physionet.org/content/challenge-2019/1.0.0/.
 DATA DESCRIPTION - 
 The data repository for the Early Sepsis Prediction Project is structured to support detailed and temporal analysis for each subject involved in the study. The repository contains one file per subject, ensuring that all relevant data for an individual patient is contained within a single file for ease of access and analysis. Each training data file is organized as a table, where the columns represent different types of measurements taken over time. The last column in each row of the table represents the sepsis label, which indicates whether the patient was diagnosed with sepsis at that time point (0 for no sepsis, 1 for sepsis). This binary labeling is crucial for training and evaluating the machine learning models used in the project.
 
+## Data Card
+- Size: 541909 rows × 8 columns
+- Data Types
+
+| Variable | Role    | Type   | Description                       | Unit                  |
+|----------|---------|--------|-----------------------------------|-----------------------|
+| HR       | Feature | float64| Heart rate                        | beats per minute      |
+| O2Sat    | Feature | float64| Pulse oximetry                    | %                     |
+| Temp     | Feature | float64| Temperature                       | Deg C                 |
+| SBP      | Feature | float64| Systolic BP                       | mm Hg                 |
+| MAP      | Feature | float64| Mean arterial pressure            | mm Hg                 |
+| DBP      | Feature | float64| Diastolic BP                      | mm Hg                 |
+| Resp     | Feature | float64| Respiration rate                  | breaths per minute    |
+| EtCO2    | Feature | float64| End tidal carbon dioxide          | mm Hg                 |
+
+
 ## PREREQUISITES 
 Following are the prerequisites of our project:
 
