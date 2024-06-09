@@ -1,10 +1,11 @@
 import pytest
 import pandas as pd
 import numpy as np
-from dags.utils.data_preprocessing import util_data_preprocessing
+from dags.utils.data_preprocessing import data_preprocess_pipeline 
 
 @pytest.fixture
 def input_dataframe():
+
     data = {
         'Patient_ID': [1, 1, 2, 2],
         'SBP': [120, 130, 140, 150],
@@ -36,35 +37,73 @@ def input_dataframe():
         'Glucose': [100, 110, 120, 130],
         'WBC': [5.0, 5.5, 6.0, 6.5],
         'Platelets': [200, 210, 220, 230],
-        'Gender': ['M', 'F', 'M', 'F']
+        'Gender': ['M', 'F', 'M', 'F'],
     }
-    df = pd.DataFrame(data)
-    return df
+    target = {'SepsisLabel': [1, 0, 0, 1]}
+    X = pd.DataFrame(data)
+    y = pd.DataFrame(target)
+    return X, y
 
-def test_column_dropping(input_dataframe):
-    df = util_data_preprocessing(input_dataframe.copy())
+
+
+@pytest.fixture
+def save_input_files(input_dataframe):
+    X, y = input_dataframe.copy()
+
+    data_input = 'test_features.pkl'
+    target_input = 'test_target.pkl'
+    data_output = 'test_preprocessed_features.pkl'
+
+    X.to_pickle(data_input)
+    y.to_pickle(target_input)
+
+    yield data_input, target_input, data_output
+
+    # Clean up the files
+    import os
+    os.remove(data_input)
+    os.remove(target_input)
+    os.remove(data_output)
+
+def test_column_dropping(save_input_files):
+    data_input, target_input, data_output = save_input_files
+
+    df = data_preprocess_pipeline(data_input, target_input, data_output)
+
     columns_dropped = {'SBP', 'DBP', 'EtCO2', 'BaseExcess', 'HCO3', 'pH', 'PaCO2', 
                        'Alkalinephos', 'Calcium', 'Magnesium', 'Phosphate', 'Potassium', 
                        'PTT', 'Fibrinogen', 'Unit1', 'Unit2'}
     for column in columns_dropped:
         assert column not in df.columns
 
-def test_null_value_handling(input_dataframe):
-    df = util_data_preprocessing(input_dataframe.copy())
+def test_null_value_handling(save_input_files):
+    data_input, target_input, data_output = save_input_files
+
+    df = data_preprocess_pipeline(data_input, target_input, data_output)
+
     assert df.isnull().sum().sum() == 0
 
-def test_gaussian_transformation(input_dataframe):
-    df = util_data_preprocessing(input_dataframe.copy())
+def test_gaussian_transformation(save_input_files):
+    data_input, target_input, data_output = save_input_files
+
+    df = data_preprocess_pipeline(data_input, target_input, data_output)
+
     columns_normalized = ['MAP', 'BUN', 'Creatinine', 'Glucose', 'WBC', 'Platelets']
     for column in columns_normalized:
         assert df[column].min() > 0  # since log(0) is undefined
 
-def test_one_hot_encoding(input_dataframe):
-    df = util_data_preprocessing(input_dataframe.copy())
-    assert 'M' in df.columns and 'F' in df.columns
+def test_one_hot_encoding(save_input_files):
+    data_input, target_input, data_output = save_input_files
+
+    df = data_preprocess_pipeline(data_input, target_input, data_output)
+    assert 'Gender_M' in df.columns and 'Gender_F' in df.columns
     assert 'Gender' not in df.columns
 
-def test_final_output_structure(input_dataframe):
-    df = util_data_preprocessing(input_dataframe.copy())
-    expected_columns = {'MAP', 'BUN', 'Creatinine', 'Glucose', 'WBC', 'Platelets', 'M', 'F'}
+def test_final_output_structure(save_input_files):
+    data_input, target_input, data_output = save_input_files
+
+    df = data_preprocess_pipeline(data_input, target_input, data_output)
+
+    expected_columns = {'MAP', 'BUN', 'Creatinine', 'Glucose', 'WBC', 'Platelets', 'Gender_M', 'Gender_F'}
     assert set(df.columns) == expected_columns
+
