@@ -74,7 +74,9 @@ Following are the prerequisites of our project:
 
 ## DAG 1 - DATA PRE-PROCESSING 
 
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/a572837a-6086-4341-9e18-9f3f6b858e44)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/fc7a1343-7ca6-45e8-bd0e-125871216448)
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/6ce104aa-10c6-4232-a9dd-53a07e394031)
 
 
 DAG-1 is the inaugural phase of the Early Sepsis Prediction Project, centered on the essential task of data preprocessing. This phase is critical as it transforms raw data into a structured format suitable for machine learning analysis. The key activities within DAG-1 include converting data to CSV format, validating the data, splitting it into training and testing sets, scaling, and cleaning.
