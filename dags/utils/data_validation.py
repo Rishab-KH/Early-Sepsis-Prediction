@@ -137,7 +137,7 @@ def validate_statistics(df, stats):
     err_msg = None
     try:
         for col, stat in stats.items():
-            if col in df.columns: # CHANGGGEEE
+            if col not in df.columns:
                 err_msg = f"Missing column: {col}"
                 logger.error(err_msg)
                 return False, err_msg
@@ -201,10 +201,6 @@ def validate_data(df):
     """
     err_msg = None
     try:
-        # Load data
-        #df = pd.read_csv(file_path)
-        #logger.info(f"Data loaded successfully.")
-
         # Load schema and statistics
         schema_and_stats = load_schema_and_stats()
         logger.info(f"schema_and_stats.json loaded successfully.")

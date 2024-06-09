@@ -39,5 +39,3 @@ def schema_and_stats_validation(ti):
     if validation_result:
         return 'train_test_split'
     return 'prepare_email_content'
-    # if not validation_result:
-    #     raise ValueError("Schema and Statstics Validation failed. Stopping DAG execution.")
