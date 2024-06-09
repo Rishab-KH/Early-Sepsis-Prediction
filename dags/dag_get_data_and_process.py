@@ -113,7 +113,7 @@ with DAG(
     )
 
     task_send_email_validation_failed = EmailOperator(
-        task_id='email_validation_d_failed',
+        task_id='email_validation_failed',
         to='derilraju@gmail.com',
         subject='Airflow Alert',
         html_content="{{ task_instance.xcom_pull(task_ids='prepare_email_content') }}"

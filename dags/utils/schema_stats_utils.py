@@ -38,6 +38,6 @@ def schema_and_stats_validation(ti):
     ti.xcom_push(key='validation_message', value=validation_message)
     if validation_result:
         return 'train_test_split'
-    return 'email_validation_failed'
+    return 'prepare_email_content'
     # if not validation_result:
     #     raise ValueError("Schema and Statstics Validation failed. Stopping DAG execution.")
