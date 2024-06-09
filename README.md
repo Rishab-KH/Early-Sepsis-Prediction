@@ -59,7 +59,10 @@ The data repository for the Early Sepsis Prediction Project is structured to sup
 | Unit1       | Feature | float64| Administrative identifier for ICU unit (MICoult64)  | categorical            |
 | Unit2       | Feature | float64| Administrative identifier for ICU unit (SICU)       | categorical            |
 | HospAdmTime | Feature | float64| Hours between hospital admit and ICU admit          | hours                  |
-| ICUL
+| ICULOS      | Feature | float64| ICU length-of-stay                                  | hours                  |
+| SepsisLabel | Target  | float64| For sepsis patients, SepsisLabel is 1 if t≥tsepsis−6
+ and 0 if t<tsepsis−6
+. For non-sepsis patients, SepsisLabel is 0 | 0 or 1 |
 
 
 ## PREREQUISITES 
