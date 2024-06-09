@@ -48,7 +48,7 @@ def input_dataframe():
 
 @pytest.fixture
 def save_input_files(input_dataframe):
-    X, y = input_dataframe.copy()
+    X, y = input_dataframe
 
     data_input = 'test_features.pkl'
     target_input = 'test_target.pkl'
