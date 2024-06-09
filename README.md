@@ -53,11 +53,12 @@ DAG-1 comprises 17 distinct processes, each designed to enhance the quality and 
 ## Installation
 
 You can directly view our server hosted Airflow instance [here](http://35.193.213.112:8080/home)
+
 Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu) for credentials
 
 ### Dependencies
-
-The entire project can be run just using Docker. Install it [here](https://docs.docker.com/engine/install/) 
+- git
+- Docker, Installation guide [here](https://docs.docker.com/engine/install/) 
 
 ### Steps
 
@@ -104,7 +105,22 @@ To stop the docker image:
 docker compose down
 ```
 
-Make sure to run the above `docker compose` commands inside your project root, i.e wherever the `docker-compose.yml` file is placed
+Once the process is running, login with credentials `airflow` and `airflow`
+```shell
+http://locahost:8080
+```
 
+Note: Make sure to run the above `docker compose` commands inside your project root, i.e wherever the `docker-compose.yml` file is placed
 
+## Our Team
+
+[Sharanya Senthil](mailto:senthil.sh@northeastern.edu)
+
+[Rishab Khuba](mailto:khuba.r@northeastern.edu)
+
+[Hrithik Sarda](mailto:sarda.h@northeastern.edu)
+
+[Raghavi Dube](mailto:dube.ra@northeastern.edu)
+
+[Deril Raju](mailto:raju.d@northeastern.edu)
 
