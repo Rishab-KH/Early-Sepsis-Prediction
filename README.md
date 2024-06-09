@@ -28,6 +28,38 @@ The data repository for the Early Sepsis Prediction Project is structured to sup
 | DBP      | Feature | float64| Diastolic BP                      | mm Hg                 |
 | Resp     | Feature | float64| Respiration rate                  | breaths per minute    |
 | EtCO2    | Feature | float64| End tidal carbon dioxide          | mm Hg                 |
+| BaseExcess      | Feature | float64| Measure of excess bicarbonate                      | mmol/L                 |
+| HCO3            | Feature | float64| Bicarbonate                                        | mmol/L                 |
+| FiO2            | Feature | float64| Fraction of inspired oxygen                        | %                      |
+| pH              | Feature | float64| pH level (not applicable)                          | N/A                    |
+| PaCO2           | Feature | float64| Partial pressure of carbon dioxide from arterial blood | mm Hg              |
+| SaO2            | Feature | float64| Oxygen saturation from arterial blood              | %                      |
+| AST             | Feature | float64| Aspartate transaminase                             | IU/L                   |
+| BUN             | Feature | float64| Blood urea nitrogen                                | mg/dL                  |
+| Alkalinephos    | Feature | float64| Alkaline phosphatase                               | IU/L                   |
+| Calcium         | Feature | float64| Calcium level                                      | mg/dL                  |
+| Chloride        | Feature | float64| Chloride                                           | mmol/L                 |
+| Creatinine      | Feature | float64| Creatinine                                         | mg/dL                  |
+| Bilirubin_direct| Feature | float64| Bilirubin direct                                   | mg/dL                  |
+| Glucose         | Feature | float64| Serum glucose                                      | mg/dL                  |
+| Lactate         | Feature | float64| Lactic acid                                        | mg/dL                  |
+| Magnesium       | Feature | float64| Magnesium                                          | mmol/L                 |
+| Phosphate       | Feature | float64| Phosphate                                          | mg/dL                  |
+| Potassium       | Feature | float64| Potassium                                          | mmol/L                 |
+| Bilirubin_total | Feature | float64| Total bilirubin                                    | mg/dL                  |
+| TroponinI       | Feature | float64| Troponin I                                         | ng/mL                  |
+| Hct             | Feature | float64| Hematocrit                                         | %                      |
+| Hgb             | Feature | float64| Hemoglobin                                         | g/dL                   |
+| PTT             | Feature | float64| Partial thromboplastin time                        | seconds                |
+| WBC             | Feature | float64| Leukocyte count                                    | count*10^3/µL          |
+| Fibrinogen      | Feature | float64| Fibrinogen level                                   | mg/dL                  |
+| Platelets       | Feature | float64| Platelet count                                     | count*10^3/µL          |
+| Age         | Feature | float64| Years (100 for patients 90 or above)                | years                  |
+| Gender      | Feature | float64| Female (0) or Male (1)                              | categorical            |
+| Unit1       | Feature | float64| Administrative identifier for ICU unit (MICoult64)  | categorical            |
+| Unit2       | Feature | float64| Administrative identifier for ICU unit (SICU)       | categorical            |
+| HospAdmTime | Feature | float64| Hours between hospital admit and ICU admit          | hours                  |
+| ICUL
 
 
 ## PREREQUISITES 
