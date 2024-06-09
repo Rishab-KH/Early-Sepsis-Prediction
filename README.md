@@ -73,6 +73,10 @@ Following are the prerequisites of our project:
 - Streamlit
 
 ## DAG 1 - DATA PRE-PROCESSING 
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/a572837a-6086-4341-9e18-9f3f6b858e44)
+
+
 DAG-1 is the inaugural phase of the Early Sepsis Prediction Project, centered on the essential task of data preprocessing. This phase is critical as it transforms raw data into a structured format suitable for machine learning analysis. The key activities within DAG-1 include converting data to CSV format, validating the data, splitting it into training and testing sets, scaling, and cleaning.
 
 Out of the total 40,000 data points available, DAG-1 utilizes 24,000 data points. These are divided into two subsets: 18,000 data points are used for training the machine learning models, while the remaining 6,000 are reserved for testing their performance. This strategic division ensures that the models are trained effectively and evaluated rigorously.
