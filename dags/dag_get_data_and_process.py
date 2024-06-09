@@ -59,7 +59,30 @@ def branch_logic_schema_generation():
 def prepare_email_content(**context):
     ti = context['ti']
     validation_message = ti.xcom_pull(task_ids='if_validate_data_schema_and_stats', key='validation_message')
-    return f"<h3>Validation of Schema/Stats Failed</h3><p>Find the error below <br>: {validation_message}</p>"
+    
+    dag_run = context['dag_run']
+    dag_id = dag_run.dag_id
+    execution_date = dag_run.execution_date.isoformat()
+    task_id = ti.task_id
+    owner = ti.task.dag.owner
+    
+    # Constructing the HTML content for the email.
+    html_content = f"""
+    <h3>Validation of Schema/Stats Failed</h3>
+    <p>Find the error below:</p>
+    <p>{validation_message}</p>
+    <br>
+    <strong>DAG Details:</strong>
+    <ul>
+        <li>DAG ID: {dag_id}</li>
+        <li>Task ID: {task_id}</li>
+        <li>Execution Date: {str(execution_date)}</li>
+        <li>Owner: {owner}</li>
+    </ul>
+    <p>This is an automated message from Airflow. Please do not reply directly to this email.</p>
+    """
+    return html_content
+
 
 with DAG(
     dag_id = "train_data_preprocess_with_gcp",
