@@ -62,7 +62,7 @@ def data_preprocess_pipeline(data_input, target_input, data_output):
         # One-hot encode the 'Gender' column
         encoded_gender_col = pd.get_dummies(df["Gender"])
         df = df.join(encoded_gender_col)
-        df.drop(column = "Gender", axis=1, inplace=True)
+        df.drop(columns = "Gender", axis=1, inplace=True)
 
         # Drop remaining rows with any NaN values
         df.dropna(inplace=True)
