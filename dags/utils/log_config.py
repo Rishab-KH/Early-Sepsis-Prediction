@@ -16,11 +16,13 @@ def setup_logging(PROJECT_ROOT, name):
     from pathlib import Path
     # Determine the project root and log directory
     # PROJECT_ROOT = Path(__file__).parent.parent.parent.parent # Assuming this is the correct project structure
-    log_dir = PROJECT_ROOT + '/logs'
-    log_filepath = log_dir + '/Sepsis_Detections_logs.log'  # The path for the log file
+    # log_dir = PROJECT_ROOT + '/logs'
+    log_dir = Path(PROJECT_ROOT) / 'logs' 
+    # log_filepath = log_dir + '/Sepsis_Detections_logs.log'  # The path for the log file
+    log_filepath = log_dir / 'Sepsis_Detections_logs.log'
     print(PROJECT_ROOT) # Print the determined project root for debugging purposes
     # Ensure the logs directory exists
-    # log_dir.mkdir(parents=True, exist_ok=True)
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     # Set up logging
     logger = logging.getLogger(name)
