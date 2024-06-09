@@ -3,3 +3,7 @@ pandas
 numpy
 pytest
 gcsfs
+gcsfs
+joblib
+scikit-learn
+xgboost
