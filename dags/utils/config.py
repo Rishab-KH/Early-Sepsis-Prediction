@@ -10,11 +10,15 @@ bucket = 'sepsis-prediction-mlops'
 # data directory
 DATA_DIR = 'gs://sepsis-prediction-mlops/data/modified_data/finalDataset-000000000000.csv'
 
+MODEL_DIR = "gs://sepsis-prediction-mlops/artifacts/models/"
+
 # name of the preprocessed data pickle file
 PREPROCESSED_DATA='preprocessed_data.pickle'
 
 # number of samples to be used while preprocessing the data
 NUM_SAMPLES=30000
+
+GCP_BUCKET_NAME = 'sepsis-prediction-mlops'
 
 # test sample size
 TEST_SAMPLE_SIZE=2000
