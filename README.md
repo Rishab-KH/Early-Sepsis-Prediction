@@ -15,7 +15,7 @@ DATA DESCRIPTION -
 The data repository for the Early Sepsis Prediction Project is structured to support detailed and temporal analysis for each subject involved in the study. The repository contains one file per subject, ensuring that all relevant data for an individual patient is contained within a single file for ease of access and analysis. Each training data file is organized as a table, where the columns represent different types of measurements taken over time. The last column in each row of the table represents the sepsis label, which indicates whether the patient was diagnosed with sepsis at that time point (0 for no sepsis, 1 for sepsis). This binary labeling is crucial for training and evaluating the machine learning models used in the project.
 
 ## Data Card
-- Size: 541909 rows × 8 columns
+- Size: 1552210 rows × 42 columns
 - Data Types
 
 | Variable | Role    | Type   | Description                       | Unit                  |
@@ -55,13 +55,13 @@ The data repository for the Early Sepsis Prediction Project is structured to sup
 | Fibrinogen      | Feature | float64| Fibrinogen level                                   | mg/dL                  |
 | Platelets       | Feature | float64| Platelet count                                     | count*10^3/µL          |
 | Age         | Feature | float64| Years (100 for patients 90 or above)                | years                  |
-| Gender      | Feature | float64| Female (0) or Male (1)                              | categorical            |
+| Gender      | Feature | int64| Female (0) or Male (1)                              | categorical            |
 | Unit1       | Feature | float64| Administrative identifier for ICU unit (MICoult64)  | categorical            |
 | Unit2       | Feature | float64| Administrative identifier for ICU unit (SICU)       | categorical            |
 | HospAdmTime | Feature | float64| Hours between hospital admit and ICU admit          | hours                  |
-| ICULOS      | Feature | float64| ICU length-of-stay                                  | hours                  |
-| SepsisLabel | Target  | float64| For sepsis patients, SepsisLabel is 1 if t≥tsepsis−6 and 0 if t< tsepsis−6, For non-sepsis patients SepsisLabel is 0 | 0 or 1 |
-
+| ICULOS      | Feature | int64| ICU length-of-stay                                  | hours                  |
+| Patient ID  | ID      | String| ID of the patient                                   | ID |
+| SepsisLabel | Target  | int64| For sepsis patients, SepsisLabel is 1 if t≥tsepsis−6 and 0 if t< tsepsis−6, For non-sepsis patients SepsisLabel is 0 | 0 or 1 |
 
 ## PREREQUISITES 
 Following are the prerequisites of our project:
