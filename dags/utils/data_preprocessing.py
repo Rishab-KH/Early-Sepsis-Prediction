@@ -77,6 +77,8 @@ def data_preprocess_pipeline(data_input, target_input, data_output):
         X_preprocessed = df.drop(columns=['SepsisLabel'])
         y_preprocessed = df['SepsisLabel']
 
+        X_preprocessed = X_preprocessed.drop(columns=X_preprocessed.columns[X_preprocessed.columns.str.contains('^Unnamed', case=False, regex=True)])
+
         logger.info(f"Shape of X after preprocessing: {X_preprocessed.shape}")
         logger.info(f"Shape of y after preprocessing: {y_preprocessed.shape}")
 
