@@ -103,7 +103,11 @@ DAG-1 comprises 17 distinct processes, each designed to enhance the quality and 
 
 9) CLEANING - Finally, all the .pkl files are cleaned and finalized for modeling in DAG-2.
 
-10) TRIGGER DAG - 2 - This process is used to trigger DAG - 2 after successful completion of DAG - 1.  
+10) TRIGGER DAG - 2 - This process is used to trigger DAG - 2 after successful completion of DAG - 1.
+
+### GCS Bucket Folder Structure
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/ce147b73-2904-437f-a40b-c81287e97988)
+
 
 ## Installation
 
