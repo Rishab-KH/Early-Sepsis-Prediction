@@ -29,7 +29,8 @@ def data_preprocess_pipeline(data_input, target_input, data_output):
         X = load_data_from_pickle(data_input)
         y = load_data_from_pickle(target_input)
 
-
+        logger.info(f"Shape of X before preprocessing: {X.shape}")
+        logger.info(f"Shape of y before preprocessing: {y.shape}")
 
         # Preprocess the dataframe
         columns_to_drop = ['SBP', 'DBP', 'EtCO2', 'BaseExcess', 'HCO3',
@@ -70,6 +71,9 @@ def data_preprocess_pipeline(data_input, target_input, data_output):
         # Split the dataframe back into X and y
         X_preprocessed = df.drop(columns=['SepsisLabel'])
         y_preprocessed = df['SepsisLabel']
+
+        logger.info(f"Shape of X after preprocessing: {X_preprocessed.shape}")
+        logger.info(f"Shape of y after preprocessing: {y_preprocessed.shape}")
 
     
         # Save X_preprocesed and y_preprocessed file as a pickle file to the data_output, target_input arg mentioned in data_preprocessing func
