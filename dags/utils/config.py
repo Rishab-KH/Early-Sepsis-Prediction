@@ -32,4 +32,4 @@ PROJECT_ROOT = os.path.abspath(os.environ["AIRFLOW_HOME"])
 GCP_PROJECT_NAME = "leafy-sunrise-425218-h4"
 
 # connection id
-GCP_CONN_ID = "my-gcp-conn"
+GCP_CONN_ID = "google_cloud_default"
