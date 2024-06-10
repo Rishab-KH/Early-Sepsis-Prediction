@@ -173,6 +173,56 @@ http://locahost:8080
 
 Note: Make sure to run the above `docker compose` commands inside your project root, i.e wherever the `docker-compose.yml` file is placed
 
+## Peformance Optimization
+
+As we are dealing with a very vast dataset i.e. individually processing 40K files and merging them. We first tried a rudimentary approach where using a PythonOperator we were manually fetching the file from cloud and appending them sequentially. This process turned out very resource and time extensive as Python was not able to handle the speed upto our expectation. Below Gantt chart shows the first try and its execution time
+
+< INSERT GANTT 1 HERE >
+
+### Improvements with Google Cloud Platform
+#### Optimized Data Processing
+To enhance performance and manage the extensive dataset of 40,000 files more effectively, we transitioned from a sequential Python-based processing approach to a more robust solution leveraging Google Cloud's BigTable and Cloud Storage. This migration aimed to utilize the scalable infrastructure of GCP to expedite data handling and analysis.
+
+##### Creating an External Table
+The first step in our optimized pipeline involved creating an external table in BigQuery, which directly references the raw data stored in Google Cloud Storage. This approach eliminates the need to load data into BigQuery, reducing both the time and computational overhead associated with importing data.
+```sql
+CREATE OR REPLACE EXTERNAL TABLE sepsis.dataset_temporary (
+    HR FLOAT64, O2Sat FLOAT64, Temp FLOAT64, SBP FLOAT64, MAP FLOAT64, DBP FLOAT64,
+    Resp FLOAT64, EtCO2 FLOAT64, BaseExcess FLOAT64, HCO3 FLOAT64, FiO2 FLOAT64,
+    pH FLOAT64, PaCO2 FLOAT64, SaO2 FLOAT64, AST FLOAT64, BUN FLOAT64,
+    Alkalinephos FLOAT64, Calcium FLOAT64, Chloride FLOAT64, Creatinine FLOAT64,
+    Bilirubin_direct FLOAT64, Glucose FLOAT64, Lactate FLOAT64, Magnesium FLOAT64,
+    Phosphate FLOAT64, Potassium FLOAT64, Bilirubin_total FLOAT64, TroponinI FLOAT64,
+    Hct FLOAT64, Hgb FLOAT64, PTT FLOAT64, WBC FLOAT64, Fibrinogen FLOAT64,
+    Platelets FLOAT64, Age FLOAT64, Gender INT64, Unit1 FLOAT64, Unit2 FLOAT64,
+    HospAdmTime FLOAT64, ICULOS INT64, SepsisLabel INT64
+)
+OPTIONS (
+    format = 'CSV',
+    uris = ['gs://sepsis-prediction-mlops/data/initial/*.psv'],
+    skip_leading_rows = 1,
+    field_delimiter="|"
+);
+```
+
+##### Data Export
+After configuring the external table to reference our raw data, we performed transformations directly within BigQuery and exported the final dataset back to Cloud Storage. This method is highly efficient due to BigQuery's powerful data processing capabilities.
+
+```sql
+EXPORT DATA OPTIONS(
+    uri='gs://sepsis-prediction-mlops/data/modified_data/finalDataset-*.csv',
+    format='CSV',
+    overwrite=true,
+    header=true,
+    field_delimiter=','
+) AS
+SELECT *, REGEXP_EXTRACT(_FILE_NAME, r'([^/]+)\.psv$') AS Patient_ID
+FROM sepsis.dataset_temporary LIMIT 9223372036854775807;
+```
+< INSERT GANT 2 HERE
+
+By leveraging Google Cloud's powerful data warehousing and storage solutions, we have significantly reduced the time and resources required to process large-scale datasets. This optimized approach not only speeds up the data processing workflow but also enhances the scalability and manageability of our sepsis prediction project.
+
 ## Our Team
 
 [Sharanya Senthil](mailto:senthil.sh@northeastern.edu)
