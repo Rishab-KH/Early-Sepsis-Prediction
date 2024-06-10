@@ -10,7 +10,7 @@ from dags.utils.helper import save_data_to_pickle
 # # Logger setup for data splitting
 logger = setup_logging(config.PROJECT_ROOT, "data_split.py")
 DATA_DIR = config.DATA_DIR
-logger.info(f"The dataset is loaded from {DATA_DIR}")
+
 
 def train_test_split():
     try:

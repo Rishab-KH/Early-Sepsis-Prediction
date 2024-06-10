@@ -36,7 +36,6 @@ default_args = {
 
 # Log the GCP bucket being used
 BUCKET = config.bucket
-logger.info(f"Bucket used in GCP {BUCKET}")
 
 def branch_logic_schema_generation():
     """
