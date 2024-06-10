@@ -12,29 +12,39 @@ from dags.utils.helper import load_data_from_pickle, save_data_to_pickle
 logger = setup_logging(config.PROJECT_ROOT, "data_preprocessing.py")
 DATA_DIR = config.DATA_DIR
 
-def data_preprocess_pipeline(data_input, data_output):
+def data_preprocess_pipeline(data_input, target_input, data_output):
 
     """
     Load, preprocess, and save the dataframe.
 
     Args:
-        data_input (str): Path to the input pickle file containing the dataframe.
-        data_output (str): Path to save the preprocessed dataframe as a pickle file.
+        data_input (str): Path to the input pickle file containing the independent features in the dataframe.
+        target_input (str): Path to the input pickle file containing the target values in the datframe.
+    Return:
+        Dataframe (pd.DataFrame): preprocessed dataframe containing features is returned  
     """
 
     try:
         # Load data from pickle file
-        df = load_data_from_pickle(data_input)
+        X = load_data_from_pickle(data_input)
+        y = load_data_from_pickle(target_input)
+
+        logger.info(f"Shape of X before preprocessing: {X.shape}")
+        logger.info(f"Shape of y before preprocessing: {y.shape}")
 
         # Preprocess the dataframe
         columns_to_drop = ['SBP', 'DBP', 'EtCO2', 'BaseExcess', 'HCO3',
                            'pH', 'PaCO2', 'Alkalinephos', 'Calcium',
                            'Magnesium', 'Phosphate', 'Potassium', 'PTT',
                            'Fibrinogen', 'Unit1', 'Unit2']
-        df["Unit"] = df["Unit1"] + df["Unit2"]
+        X["Unit"] = X["Unit1"] + X["Unit2"]
 
         # Drop redundant columns
-        df.drop(columns=columns_to_drop, inplace=True)
+        X.drop(columns=columns_to_drop, inplace=True)
+
+        # Join X and y
+        df = pd.concat([X, y], axis=1)
+
         grouped_by_patient = df.groupby('Patient_ID')
 
         # Impute missing values with forward and backward fill
@@ -51,14 +61,27 @@ def data_preprocess_pipeline(data_input, data_output):
             df[col] = np.log1p(df[col])
 
         # One-hot encode the 'Gender' column
-        df = pd.get_dummies(df, columns=['Gender'], drop_first=True)
+        encoded_gender_col = pd.get_dummies(df["Gender"])
+        df = df.join(encoded_gender_col)
+        df.drop(columns = "Gender", axis=1, inplace=True)
 
         # Drop remaining rows with any NaN values
         df.dropna(inplace=True)
 
-        # Save the preprocessed dataframe to a pickle file
-        save_data_to_pickle(df, data_output)
+        # Split the dataframe back into X and y
+        X_preprocessed = df.drop(columns=['SepsisLabel'])
+        y_preprocessed = df['SepsisLabel']
 
+        logger.info(f"Shape of X after preprocessing: {X_preprocessed.shape}")
+        logger.info(f"Shape of y after preprocessing: {y_preprocessed.shape}")
+
+    
+        # Save X_preprocesed and y_preprocessed file as a pickle file to the data_output, target_input arg mentioned in data_preprocessing func
+        save_data_to_pickle(X_preprocessed, data_output)
+        save_data_to_pickle(y_preprocessed, target_input)
+
+        return X_preprocessed
+        
     except KeyError as ke:
         logger.error("KeyError during preprocessing: %s", ke)
     except ValueError as ve:
