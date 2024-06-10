@@ -96,7 +96,7 @@ def test_one_hot_encoding(save_input_files):
     data_input, target_input, data_output = save_input_files
 
     df = data_preprocess_pipeline(data_input, target_input, data_output)
-    assert 'Gender_M' in df.columns and 'Gender_F' in df.columns
+    assert 'M' in df.columns and 'F' in df.columns
     assert 'Gender' not in df.columns
 
 def test_final_output_structure(save_input_files):
@@ -104,6 +104,6 @@ def test_final_output_structure(save_input_files):
 
     df = data_preprocess_pipeline(data_input, target_input, data_output)
 
-    expected_columns = {'MAP', 'BUN', 'Creatinine', 'Glucose', 'WBC', 'Platelets', 'Gender_M', 'Gender_F'}
+    expected_columns = {'MAP', 'BUN', 'Creatinine', 'Glucose', 'WBC', 'Platelets', 'M', 'F'}
     assert set(df.columns) == expected_columns
 
