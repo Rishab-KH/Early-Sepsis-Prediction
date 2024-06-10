@@ -61,10 +61,14 @@ def data_preprocess_pipeline(data_input, target_input, data_output):
             df[col] = np.log1p(df[col])
 
         # One-hot encode the 'Gender' column
-        df['Gender'] = df['Gender'].replace({1: 'Male', 0: 'Female'}).apply(lambda x: x if x in ['Male', 'Female'] else 'Unknown')
-        encoded_gender_col = pd.get_dummies(df["Gender"])
+        df['gender'] = df['Gender'].replace({1: 'M', 0: 'F'}).apply(lambda x: x if x in ['M', 'F'] else np.nan)
+        encoded_gender_col = pd.get_dummies(df["gender"])
         df = df.join(encoded_gender_col)
-        df.drop(columns = "Gender", axis=1, inplace=True)
+        df.drop(columns = ["Gender", "gender"], axis=1, inplace=True)
+
+        # Ensure the encoded columns are integers
+        df['F'] = df['F'].astype(int)
+        df['M'] = df['M'].astype(int)
 
         # Drop remaining rows with any NaN values
         df.dropna(inplace=True)
