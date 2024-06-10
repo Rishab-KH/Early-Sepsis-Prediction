@@ -106,7 +106,8 @@ DAG-1 comprises 17 distinct processes, each designed to enhance the quality and 
 10) TRIGGER DAG - 2 - This process is used to trigger DAG - 2 after successful completion of DAG - 1.
 
 ### GCS Bucket Folder Structure
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/ce147b73-2904-437f-a40b-c81287e97988)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/5ecbd9dd-cb8d-4a2f-ad84-ef792a1d11b9)
+The link to our bucket: https://console.cloud.google.com/storage/browser/sepsis-prediction-mlops/data/processed_data;tab=objects?pageState=(%22StorageObjectListTable%22:(%22f%22:%22%255B%255D%22))&prefix=&forceOnObjectsSortingFiltering=false
 
 
 ## Installation
