@@ -61,6 +61,7 @@ def data_preprocess_pipeline(data_input, target_input, data_output):
             df[col] = np.log1p(df[col])
 
         # One-hot encode the 'Gender' column
+        df['Gender'] = df['Gender'].replace({1: 'Male', 0: 'Female'}).apply(lambda x: x if x in ['Male', 'Female'] else 'Unknown')
         encoded_gender_col = pd.get_dummies(df["Gender"])
         df = df.join(encoded_gender_col)
         df.drop(columns = "Gender", axis=1, inplace=True)
