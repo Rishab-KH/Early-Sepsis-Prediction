@@ -177,7 +177,8 @@ Note: Make sure to run the above `docker compose` commands inside your project r
 
 As we are dealing with a very vast dataset i.e. individually processing 40K files and merging them. We first tried a rudimentary approach where using a PythonOperator we were manually fetching the file from cloud and appending them sequentially. This process turned out very resource and time extensive as Python was not able to handle the speed upto our expectation. Below Gantt chart shows the first try and its execution time
 
-< INSERT GANTT 1 HERE >
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/a36366fd-0906-4fc5-8795-9965867c66e1)
+The above Gantt chart highlights the bottleneck in our pipeline
 
 ### Improvements with Google Cloud Platform
 #### Optimized Data Processing
