@@ -135,6 +135,7 @@ AIRFLOW__SMTP__SMTP_USER=<your_email>
 AIRFLOW__SMTP__SMTP_PASSWORD=<your app password>
 AIRFLOW__SMTP__SMTP_PORT=<smtp_port>
 AIRFLOW__SMTP__SMTP_MAIL_FROM=<your_email>
+AIRFLOW_CONN_GOOGLE_CLOUD_DEFAULT=google-cloud-platform://?extra__google_cloud_platform__key_path=%2Fkeys%2Fkey.json&extra__google_cloud_platform__scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform&extra__google_cloud_platform__project=airflow&extra__google_cloud_platform__num_retries=5
 ```
 
 Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu)
