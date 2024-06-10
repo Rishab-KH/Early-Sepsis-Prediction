@@ -96,7 +96,7 @@ with DAG(
 
     task_gcs_psv_to_gcs_csv = BigQueryInsertJobOperator(
     task_id="merge_data_from_psv_to_csv",
-    gcp_conn_id="my-gcp-conn",
+    gcp_conn_id=config.GCP_CONN_ID,
     configuration={
         "query": {
             "query": "{% include '/merge_data_from_psv_to_csv.sql' %}",
@@ -117,7 +117,7 @@ with DAG(
 
     task_push_generated_schema_data = LocalFilesystemToGCSOperator(
        task_id="push_schema_to_gcs",
-       gcp_conn_id="my-gcp-conn",
+       gcp_conn_id=config.GCP_CONN_ID,
        src=STATS_SCHEMA_FILE,
        dst=f"artifacts/{STATS_SCHEMA_FILE}",
        bucket=BUCKET
@@ -172,7 +172,7 @@ with DAG(
 
     task_push_scaler = LocalFilesystemToGCSOperator(
        task_id="push_scaler_to_gcs",
-       gcp_conn_id="my-gcp-conn",
+       gcp_conn_id=config.GCP_CONN_ID,
        src="scaler.pkl",
        dst="artifacts/scaler.pkl",
        bucket=BUCKET
@@ -180,7 +180,7 @@ with DAG(
 
     task_push_X_train_data = LocalFilesystemToGCSOperator(
        task_id="push_X_train_data_to_gcs",
-       gcp_conn_id="my-gcp-conn",
+       gcp_conn_id=config.GCP_CONN_ID,
        src="X_train_processed_scaled.pkl",
        dst="data/processed_data/X_train.pkl",
        bucket=BUCKET
@@ -188,7 +188,7 @@ with DAG(
 
     task_push_X_test_data = LocalFilesystemToGCSOperator(
        task_id="push_X_test_data_to_gcs",
-       gcp_conn_id="my-gcp-conn",
+       gcp_conn_id=config.GCP_CONN_ID,
        src="X_test_processed_scaled.pkl",
        dst="data/processed_data/X_test.pkl",
        bucket=BUCKET
@@ -196,7 +196,7 @@ with DAG(
 
     task_push_y_train_data = LocalFilesystemToGCSOperator(
        task_id="push_y_train_data_to_gcs",
-       gcp_conn_id="my-gcp-conn",
+       gcp_conn_id=config.GCP_CONN_ID,
        src="y_train.pkl",
        dst="data/processed_data/y_train.pkl",
        bucket=BUCKET
@@ -204,7 +204,7 @@ with DAG(
 
     task_push_y_test_data = LocalFilesystemToGCSOperator(
        task_id="push_y_test_data_to_gcs",
-       gcp_conn_id="my-gcp-conn",
+       gcp_conn_id=config.GCP_CONN_ID,
        src="y_test.pkl",
        dst="data/processed_data/y_test.pkl",
        bucket=BUCKET
