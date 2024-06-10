@@ -219,7 +219,8 @@ EXPORT DATA OPTIONS(
 SELECT *, REGEXP_EXTRACT(_FILE_NAME, r'([^/]+)\.psv$') AS Patient_ID
 FROM sepsis.dataset_temporary LIMIT 9223372036854775807;
 ```
-< INSERT GANT 2 HERE
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/4af31f53-2e9c-45d1-b12d-9dbff672ac1d)
+The above Gantt chart highlights significant improvement in speeds of processing the PSV to CSV data, removing the bottleneck 
 
 By leveraging Google Cloud's powerful data warehousing and storage solutions, we have significantly reduced the time and resources required to process large-scale datasets. This optimized approach not only speeds up the data processing workflow but also enhances the scalability and manageability of our sepsis prediction project.
 
