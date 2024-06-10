@@ -108,13 +108,13 @@ with DAG(
     task_X_train_data_preprocessing = PythonOperator(
         task_id='preprocess_X_train',
         python_callable=data_preprocess_pipeline,
-        op_kwargs={'data_input': 'X_train.pkl', 'target_input': 'Y_train.pkl', 'data_output':'X_train_processed.pkl'}
+        op_kwargs={'data_input': 'X_train.pkl', 'target_input': 'y_train.pkl', 'data_output':'X_train_processed.pkl'}
     )
 
     task_X_test_data_preprocessing = PythonOperator(
         task_id='preprocess_X_test',
         python_callable=data_preprocess_pipeline,
-        op_kwargs={'data_input': 'X_test.pkl', 'target_input': 'Y_test.pkl', 'data_output':'X_test_processed.pkl'}
+        op_kwargs={'data_input': 'X_test.pkl', 'target_input': 'y_test.pkl', 'data_output':'X_test_processed.pkl'}
     )
 
     task_scale_train_data = PythonOperator(
