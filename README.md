@@ -83,33 +83,36 @@ DAG-1 is the inaugural phase of the Early Sepsis Prediction Project, centered on
 
 Out of the total 40,000 data points available, DAG-1 utilizes 24,000 data points. These are divided into two subsets: 18,000 data points are used for training the machine learning models, while the remaining 6,000 are reserved for testing their performance. This strategic division ensures that the models are trained effectively and evaluated rigorously.
 
-DAG-1 comprises 19 distinct processes, each designed to enhance the quality and usability of the data. The processes are:
+In DAG-1, each task is carefully logged and stored locally to help developers track and identify any abnormal behavior.
 
-1) .PSV TO .CSV - This process converts .PSV files to .CSV format using the Google BigQuery operator. The resulting .CSV files are then saved back to GCP.
+DAG-1 comprises 19 distinct processes, each designed to enhance the quality and usability of the data. The airflow task are:
 
-2) IF Schema Exists - This process uses an IF statement to check whether schema exists or not. The workflow further proceeds only if schema exists. 
+1) .PSV TO .CSV - This task converts .PSV files to .CSV format using the Google BigQuery operator. The resulting .CSV files are then saved back to GCP.
 
-3) SCHEMA GENERATION - The input for this process is the merged .CSV file generated from the previous step. This process constructs a schema and compiles statistics, which are subsequently used for data validation to prevent model crashes caused by incorrect data entry. The schema includes column names and data types, while the statistics encompass null count, minimum, maximum, mean, median, and standard deviation for each column. This schema is then produced in a .JSON file.
+2) IF Schema Exists - This task uses an IF statement to check whether schema exists or not. The workflow further proceeds only if schema exists. 
 
-4) PUSH .JSON TO GCP - This process pushes .JSON schema file from the previous process to GCP. 
+3) SCHEMA GENERATION - The input for this task is the merged .CSV file generated from the previous task. This task constructs a schema and compiles statistics, which are subsequently used for data validation to prevent model crashes caused by incorrect data entry. The schema includes column names and data types, while the statistics encompass null count, minimum, maximum, mean, median, and standard deviation for each column. This schema is then produced in a .JSON file.
 
-5) PULLING .JSON FOR DATA VALIDATION - This process retrieves the .JSON file from GCP for data validation. The validation is performed according to the schema defined in the previous process. The outcome of this validation is a boolean value: True or False. If each data point validates as True, the process proceeds; otherwise, it halts to prevent the model from crashing.
+4) PUSH .JSON TO GCP - This task pushes .JSON schema file from the previous process to GCP. 
 
-6) PREPARING EMAIL CONTENT - This process creates an email notifying the developer that the data validation has failed and the workflow has stopped working to avoid model from failing. Data validation is said to fail when the data does not satisfy the pre-defined schema and statistical ranges. 
+5) PULLING .JSON FOR DATA VALIDATION - This task retrieves the .JSON file from GCP for data validation. The validation is performed according to the schema defined in the previous process. The outcome of this validation is a boolean value: True or False. If each data point validates as True, the process proceeds; otherwise, it halts to prevent the model from crashing.
 
-7) EMAIL VALIDATION FAILED - This process is triggered when the previous process is successful. The email created in the previous process is then send to the developer in this process. 
+6) PREPARING EMAIL CONTENT - This task creates an email notifying the developer that the data validation has failed and the workflow has stopped working to avoid model from failing. Data validation is said to fail when the data does not satisfy the pre-defined schema and data distribution. 
+
+7) EMAIL VALIDATION FAILED - This process is triggered when the previous process is successful. The email created by airflow using the email content in the previous task is sent to the developers to alert them in case of data anomaly. 
 
 8) TRAIN - TEST SPLIT - This process pulls the .CSV file and splits it into training and testing sets. The resulting sets are then saved locally.
 
 9) PRE - PROCESSING - After the train-test split, X-train and X-test undergo preprocessing. Two separate processes are created: one for preprocessing the training set and another for preprocessing the test set.
 
-10) SCALING TRAIN AND TEST SETS - In this process, the pre-processed training and test datasets are scaled. Separate procedures are established: one for scaling the training set and another for scaling the test set.
+10) SCALING TRAIN AND TEST SETS - In this task, the pre-processed training and test datasets are scaled. Separate procedures are established: one for scaling the training set and another for scaling the test set.
 
-11) PUSHING FILES TO GCP - Five distinct processes are established to upload X_train, X_test, Y_train, Y_test, and the scaler to GCP. These files are uploaded in .pkl format for efficiency.
+11) PUSHING FILES TO GCP - Five distinct tasks are established to upload X_train, X_test, Y_train, Y_test, and the scaler to GCP. These files are uploaded in .pkl format for efficiency.
 
 12) CLEANING - Finally, all the .pkl files are cleaned and finalized for modeling in DAG-2.
 
-13) TRIGGER DAG - 2 - This process is used to trigger DAG - 2 after successful completion of DAG - 1.
+13) TRIGGER DAG - 2 - This task is used to trigger DAG - 2 after successful completion of DAG - 1.
+
 
 ### GCS Bucket Folder Structure
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/5ecbd9dd-cb8d-4a2f-ad84-ef792a1d11b9)
