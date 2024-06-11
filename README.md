@@ -15,7 +15,7 @@ DATA DESCRIPTION -
 The data repository for the Early Sepsis Prediction Project is structured to support detailed and temporal analysis for each subject involved in the study. The repository contains one file per subject, ensuring that all relevant data for an individual patient is contained within a single file for ease of access and analysis. Each training data file is organized as a table, where the columns represent different types of measurements taken over time. The last column in each row of the table represents the sepsis label, which indicates whether the patient was diagnosed with sepsis at that time point (0 for no sepsis, 1 for sepsis). This binary labeling is crucial for training and evaluating the machine learning models used in the project.
 
 ## Data Card
-- Size: 1552210 rows × 42 columns
+- Size: 1552210 rows × 42 columns [From 40,000 Patients]
 - Data Types
 
 | Variable | Role    | Type   | Description                       | Unit                  |
@@ -81,21 +81,26 @@ Following are the prerequisites of our project:
 
 DAG-1 is the inaugural phase of the Early Sepsis Prediction Project, centered on the essential task of data preprocessing. This phase is critical as it transforms raw data into a structured format suitable for machine learning analysis. The key activities within DAG-1 include converting data to CSV format, validating the data, splitting it into training and testing sets, scaling, and cleaning.
 
-Out of the total 40,000 data points available, DAG-1 utilizes 24,000 data points. These are divided into two subsets: 18,000 data points are used for training the machine learning models, while the remaining 6,000 are reserved for testing their performance. This strategic division ensures that the models are trained effectively and evaluated rigorously.
+Out of the total 40,000 patient files from two hospitals, DAG-1 utilizes 24,000 files. These are split into two subsets: 18,000 patient files are used for training the machine learning models, while the remaining 6,000 are reserved for testing model performance. This strategic division ensures effective training and rigorous evaluation of the models. The remaining 16,000 patient files will be sent in batches, simulating real-time data, and will be processed later as part of the Deployment pipeline (DAG-3) to validate the models' performance and detect any potential data or concept drift over time.
+
+Patient File Description:
+Format: Each patient file is in .PSV format.
+Content: Contains hourly records for that particular patient.
+Duration: For each patient, there may be records for up to 60 hours, resulting in up to 60 records per file.
 
 In DAG-1, each task is carefully logged and stored locally to help developers track and identify any abnormal behavior.
 
 DAG-1 comprises 19 distinct processes, each designed to enhance the quality and usability of the data. The airflow task are:
 
-1) .PSV TO .CSV - This task converts .PSV files to .CSV format using the Google BigQuery operator. The resulting .CSV files are then saved back to GCP.
+1) .PSV TO .CSV - This task converts individual patient files from .PSV files to .CSV format using the Google BigQuery operator. The resulting .CSV files are then saved back to GCP.
 
-2) IF Schema Exists - This task uses an IF statement to check whether schema exists or not. The workflow further proceeds only if schema exists. 
+2) IF Schema Exists - This task uses an IF statement to check whether schema for validation exists in our Google Cloud Bucket or not. The workflow further proceeds only if schema exists. 
 
-3) SCHEMA GENERATION - The input for this task is the merged .CSV file generated from the previous task. This task constructs a schema and compiles statistics, which are subsequently used for data validation to prevent model crashes caused by incorrect data entry. The schema includes column names and data types, while the statistics encompass null count, minimum, maximum, mean, median, and standard deviation for each column. This schema is then produced in a .JSON file.
+3) SCHEMA GENERATION - The input for this task is the merged .CSV file generated from the previous task. If the validation schema doesn't exists, This task constructs a schema and compiles statistics, which are subsequently used for data validation to prevent model crashes caused by incorrect data entry. The schema includes column names and data types, while the statistics encompass null count, minimum, maximum, mean, median, and standard deviation for each column. This schema is then produced in a .JSON file.
 
 4) PUSH .JSON TO GCP - This task pushes .JSON schema file from the previous process to GCP. 
 
-5) PULLING .JSON FOR DATA VALIDATION - This task retrieves the .JSON file from GCP for data validation. The validation is performed according to the schema defined in the previous process. The outcome of this validation is a boolean value: True or False. If each data point validates as True, the process proceeds; otherwise, it halts to prevent the model from crashing.
+5) PULLING .JSON FOR DATA VALIDATION - This task retrieves the .JSON file from GCP for data validation. The validation is performed according to the schema defined in the previous process. The outcome of this validation is a boolean value: True or False. If each data point passes schema  and statastics validation it retuens True, the process proceeds; otherwise, it halts the further processing of DAG-1 thereby preventing the pipeline from crashing.
 
 6) PREPARING EMAIL CONTENT - This task creates an email notifying the developer that the data validation has failed and the workflow has stopped working to avoid model from failing. Data validation is said to fail when the data does not satisfy the pre-defined schema and data distribution. 
 
