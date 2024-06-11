@@ -84,9 +84,9 @@ DAG-1 is the inaugural phase of the Early Sepsis Prediction Project, centered on
 Out of the total 40,000 patient files from two hospitals, DAG-1 utilizes 24,000 files. These are split into two subsets: 18,000 patient files are used for training the machine learning models, while the remaining 6,000 are reserved for testing model performance. This strategic division ensures effective training and rigorous evaluation of the models. The remaining 16,000 patient files will be sent in batches, simulating real-time data, and will be processed later as part of the Deployment pipeline (DAG-3) to validate the models' performance and detect any potential data or concept drift over time.
 
 Patient File Description:
-Format: Each patient file is in .PSV format.
-Content: Contains hourly records for that particular patient.
-Duration: For each patient, there may be records for up to 60 hours, resulting in up to 60 records per file.
+ Format: Each patient file is in .PSV format.
+ Content: Contains hourly records for that particular patient.
+ Duration: For each patient, there may be records for up to 60 hours, resulting in up to 60 records per file.
 
 In DAG-1, each task is carefully logged and stored locally to help developers track and identify any abnormal behavior.
 
