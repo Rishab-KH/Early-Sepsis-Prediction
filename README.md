@@ -90,7 +90,7 @@ Patient File Description:
 
 In DAG-1, each task is carefully logged and stored locally to help developers track and identify any abnormal behavior.
 
-DAG-1 comprises 19 distinct processes, each designed to enhance the quality and usability of the data. The airflow task are:
+DAG-1 comprises 19 distinct tasks, each designed to enhance the quality and usability of the data. The airflow task are:
 
 1) .PSV TO .CSV - This task converts individual patient files from .PSV files to .CSV format using the Google BigQuery operator. The resulting .CSV files are then saved back to GCP.
 
