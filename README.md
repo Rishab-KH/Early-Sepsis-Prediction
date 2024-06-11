@@ -95,9 +95,9 @@ DAG-1 comprises 19 distinct processes, each designed to enhance the quality and 
 
 5) PULLING .JSON FOR DATA VALIDATION - This process retrieves the .JSON file from GCP for data validation. The validation is performed according to the schema defined in the previous process. The outcome of this validation is a boolean value: True or False. If each data point validates as True, the process proceeds; otherwise, it halts to prevent the model from crashing.
 
-6) Preparing email content - This process creates an email notifying the developer that the data validation has failed and the workflow has stopped working to avoid model from failing. Data validation is said to fail when the data does not satisfy the pre-defined schema and statistical ranges. 
+6) PREPARING EMAIL CONTENT - This process creates an email notifying the developer that the data validation has failed and the workflow has stopped working to avoid model from failing. Data validation is said to fail when the data does not satisfy the pre-defined schema and statistical ranges. 
 
-7) Email validation failed - This process is triggered when the previous process is successful. The email created in the previous process is then send to the developer in this process. 
+7) EMAIL VALIDATION FAILED - This process is triggered when the previous process is successful. The email created in the previous process is then send to the developer in this process. 
 
 8) TRAIN - TEST SPLIT - This process pulls the .CSV file and splits it into training and testing sets. The resulting sets are then saved locally.
 
