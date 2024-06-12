@@ -3,8 +3,8 @@ import pickle
 import os
 
 # Custom import
-import dags.utils.config as config
-from dags.utils.log_config import setup_logging
+import utils.config as config
+from utils.log_config import setup_logging
 
 logger = setup_logging(config.PROJECT_ROOT, "helper.py")
 

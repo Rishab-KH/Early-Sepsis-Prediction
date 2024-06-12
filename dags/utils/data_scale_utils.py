@@ -4,9 +4,9 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 # Custom imports
-import dags.utils.config as config
-from dags.utils.log_config import setup_logging
-from dags.utils.helper import load_data_from_pickle, save_data_to_pickle
+import utils.config as config
+from utils.log_config import setup_logging
+from utils.helper import load_data_from_pickle, save_data_to_pickle
 
 logger = setup_logging(config.PROJECT_ROOT, "data_scale_utils.py")
 

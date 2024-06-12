@@ -13,13 +13,13 @@ from airflow.operators.email import EmailOperator
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
-import dags.utils.config as config
-from dags.utils.helper import clean_pickle_files
-from dags.utils.data_preprocessing import data_preprocess_pipeline 
-from dags.utils.data_split_utils import train_test_split
-from dags.utils.data_scale_utils import scale_train_data, scale_test_data
-from dags.utils.log_config import setup_logging
-from dags.utils.schema_stats_utils import schema_stats_gen, schema_and_stats_validation
+import utils.config as config
+from utils.helper import clean_pickle_files
+from utils.data_preprocessing import data_preprocess_pipeline 
+from utils.data_split_utils import train_test_split
+from utils.data_scale_utils import scale_train_data, scale_test_data
+from utils.log_config import setup_logging
+from utils.schema_stats_utils import schema_stats_gen, schema_and_stats_validation
 
 
 DATA_DIR = config.DATA_DIR
@@ -49,7 +49,7 @@ def branch_logic_schema_generation():
     """
     hook = GCSHook(gcp_conn_id=config.GCP_CONN_ID)
     file_exists = hook.exists(bucket_name=config.bucket, object_name='artifacts/schema_and_stats.json')
-
+    
     if file_exists:
         return 'if_validate_data_schema_and_stats'
     else:
@@ -90,7 +90,7 @@ with DAG(
     schedule_interval = None,
     default_args=default_args,
     catchup = False,
-    template_searchpath=["/opt/airflow/dags/utils"]
+    template_searchpath=["/home/airflow/gcs/dags/utils"]
 ) as dag:
 
     task_gcs_psv_to_gcs_csv = BigQueryInsertJobOperator(

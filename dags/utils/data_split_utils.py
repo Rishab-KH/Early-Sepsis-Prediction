@@ -3,9 +3,9 @@ from sklearn.model_selection import GroupShuffleSplit
 import pandas as pd
 
 # Custom imports
-import dags.utils.config as config
-from dags.utils.log_config import setup_logging
-from dags.utils.helper import save_data_to_pickle
+import utils.config as config
+from utils.log_config import setup_logging
+from utils.helper import save_data_to_pickle
 
 # # Logger setup for data splitting
 logger = setup_logging(config.PROJECT_ROOT, "data_split.py")
