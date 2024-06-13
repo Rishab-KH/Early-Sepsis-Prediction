@@ -1,8 +1,13 @@
 from airflow import DAG
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
+import os
 from airflow.providers.google.cloud.operators.vertex_ai.custom_job import CreateCustomContainerTrainingJobOperator
 
+sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
+
+# Custom imports
+import dags.utils.config as config
 
 default_args = {
     "owner": 'airflow',
@@ -28,7 +33,8 @@ with DAG(
         replica_count=1,
         machine_type="n1-standard-4",
         region="us-central1",
-        args=['--gcs_bucket_path=sepsis-prediction-mlops/data/processed_data']
+        args=['--gcs_bucket_path=sepsis-prediction-mlops/data/processed_data'],
+        gcp_conn_id=config.GCP_CONN_ID
     )
     task_dummy_end = DummyOperator(task_id='end_task')
 
