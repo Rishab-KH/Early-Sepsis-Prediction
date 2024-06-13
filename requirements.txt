@@ -2,9 +2,8 @@ scikit-learn==1.2.2
 pandas
 numpy
 pytest
-gcsfs
-gcsfs
+gcsfs==2023.10.0
+fsspec==2023.10.0
 joblib
-scikit-learn
 xgboost
 mlflow
