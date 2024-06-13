@@ -2,6 +2,7 @@ from airflow import DAG
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
 import os
+import sys
 from airflow.providers.google.cloud.operators.vertex_ai.custom_job import CreateCustomContainerTrainingJobOperator
 
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
