@@ -6,6 +6,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from sklearn.metrics import confusion_matrix, roc_auc_score, mean_absolute_error, mean_squared_error
 import pickle
 import gcsfs
+from datetime import datetime
 
 from google.cloud import storage
 
@@ -104,7 +105,7 @@ rcf_predictions = model.predict(X_test)
 evaluate_model(y_test,rcf_predictions)
 
 # Define model name
-artifact_filename = 'model.pkl'
+artifact_filename = f'model-{datetime.now().strftime("%Y%m%d-%H%M%S")}.pkl'
 
 # Save model artifact to local filesystem (doesn't persist)
 local_path = artifact_filename
@@ -117,6 +118,7 @@ if model_directory == "":
     print("Training is run locally - skipping model saving to GCS.")
 else:
     storage_path = os.path.join(model_directory, artifact_filename)
+    print(storage_path)
     blob = storage.blob.Blob.from_string(storage_path, client=storage.Client())
     blob.upload_from_filename(local_path)
     logging.info("model exported to : {}".format(storage_path))
