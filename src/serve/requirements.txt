@@ -1,1 +1,6 @@
-# Sharanya write Req file
+Flask
+google-cloud-storage
+joblib
+scikit-learn
+gcsfs
+python-dotenv
