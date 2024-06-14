@@ -85,6 +85,8 @@ X.reset_index(drop=True, inplace=True)
 y.reset_index(drop=True, inplace=True)
 train_df = pd.concat([X, y], axis=1)
 
+
+# Rishab Fix this
 majority_class = train_df[train_df['SepsisLabel'] == 0]
 minority_class = train_df[train_df['SepsisLabel'] == 1]
 
