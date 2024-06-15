@@ -33,6 +33,7 @@ jobs:
 
     - name: Deploy Serve on Google Cloud Run
       run: |
+        gcloud config set project $GOOGLE_PROJECT
         gcloud run deploy sepsis-predict \
           --image us-central1-docker.pkg.dev/$GOOGLE_PROJECT/sepsis-mlops-repo/serve_pipeline:latest \
           --region us-central1 \
