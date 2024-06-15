@@ -69,7 +69,7 @@ def health_check():
     Returns:
         Response: A Flask response with status 200 and "healthy" as the body.
     """
-    return {"status": "healthy"}
+    return {"status": "The app is healthy"}
 
 @app.route(os.environ['AIP_PREDICT_ROUTE'], methods=['POST'])
 def predict():
