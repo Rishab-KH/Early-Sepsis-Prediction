@@ -33,12 +33,11 @@ jobs:
 
     - name: Deploy Serve on Google Cloud Run
       run: |
-        gcloud run deploy sepsis-predict \ 
+        gcloud run deploy sepsis-predict \
           --image us-central1-docker.pkg.dev/$GOOGLE_PROJECT/sepsis-mlops-repo/serve_pipeline:latest \
           --region us-central1 \
           --service-account 1035581784142-compute@developer.gserviceaccount.com \
           --memory 512Mi \
           --allow-unauthenticated \
           --port 8080 \
-          --revision-suffix v1-0-0 \
           --tag prod
