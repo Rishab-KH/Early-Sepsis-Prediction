@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 #  this is the configuration file, all the settings like model hyper parameters, storage links are stored here
 # GCP bucket URL where the data is saved
@@ -33,3 +34,9 @@ GCP_PROJECT_NAME = "leafy-sunrise-425218-h4"
 
 # connection id
 GCP_CONN_ID = "google_cloud_default"
+
+# mlflow_uri
+TRACKING_URI = "https://mlflow-cloud-run-3wcd2ryf5q-uc.a.run.app"
+
+# artifact storage name
+artifact_base_path = f'model-run-{datetime.now().strftime("%Y%m%d-%H%M%S")}'
