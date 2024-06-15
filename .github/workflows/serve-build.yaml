@@ -4,7 +4,7 @@ on:
   push:
     paths:
     - 'src/serve/**'
-    - '.github/workflows/**'
+    - '.github/workflows/serve-build.yaml'
     branches:
     - 'main'
 
@@ -32,6 +32,8 @@ jobs:
         docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT/sepsis-mlops-repo/serve_pipeline:latest
 
     - name: Deploy Serve on Google Cloud Run
+      env:
+          GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
       run: |
         gcloud run deploy sepsis-predict \
           --image us-central1-docker.pkg.dev/$GOOGLE_PROJECT/sepsis-mlops-repo/serve_pipeline:latest \
