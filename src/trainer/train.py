@@ -142,7 +142,7 @@ def get_best_model(best_candidates):
     logging.info(f"Best Params: {best_model['params']}")
     logging.info(f"F1 Score: {best_model['f1_score']}")
     
-    return best_model, best_model_name
+    return best_overall_model, metrics
 
 
 def evaluate_best_model(best_model, best_model_name, X_val, y_val):
@@ -157,9 +157,9 @@ def evaluate_best_model(best_model, best_model_name, X_val, y_val):
     conf_matrix = confusion_matrix(y_val, y_pred)
     class_report = classification_report(y_val, y_pred)
     # Log metrics and parameters
-    with mlflow.start_run(run_name=best_model):
-        mlflow.log_param('model_name', best_model)
-        mlflow.log_params(best_model)
+    with mlflow.start_run(run_name=best_model_name):
+        mlflow.log_param('model_name', best_model_name)
+        mlflow.log_params(best_model['params'])
 
         metrics = {'training_time': best_model['training_time'],
                     'accuracy': accuracy,
