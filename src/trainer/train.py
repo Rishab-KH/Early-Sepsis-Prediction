@@ -184,24 +184,28 @@ def evaluate_best_model(best_model, best_model_name, X_val, y_val):
 
 def save_and_upload_artifacts(best_model, metrics, arguments):
 
-    model_path = config.artifact_base_path + '/model.pkl'
-    metrics_path =  config.artifact_base_path + '/metrics.json'
-
-    save_pickle_files(model_path, best_model)
-    save_json_file(metrics_path, metrics)
+    model_ext = "/model.pkl"
+    metrics_ext = "/metrics.json"
 
     # Upload model and results artifact to Cloud Storage
     model_directory = arguments['model_dir']
+    model_storage_path = os.path.join(model_directory, model_ext)
+    results_storage_path = os.path.join(model_directory, metrics_ext)
+
+    save_pickle_files(model_storage_path, best_model)
+    save_json_file(results_storage_path, metrics)
+
+    # # Upload model and results artifact to Cloud Storage
+    # model_directory = arguments['model_dir']
 
     if model_directory == "":
         print("Training is run locally - skipping model saving to GCS.")
     else:
-        model_storage_path = os.path.join(model_directory, model_path)
-        results_storage_path = os.path.join(model_directory, metrics_path)
+        
         model_blob = storage.blob.Blob.from_string(model_storage_path, client=storage.Client())
-        model_blob.upload_from_filename(model_path)
+        model_blob.upload_from_(model_storage_path)
         metrics_blob = storage.blob.Blob.from_string(results_storage_path, client=storage.Client())
-        metrics_blob.upload_from_filename(metrics_path)
+        metrics_blob.upload_from_filename(results_storage_path)
         logging.info("model exported to : {}".format(model_storage_path))
         logging.info("results exported to : {}".format(results_storage_path))
 
