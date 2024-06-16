@@ -7,26 +7,38 @@ from flask import Flask, jsonify, request
 from google.cloud import storage
 import numpy as np
 import pandas as pd
+import time
+from datetime import datetime
 from google.cloud import storage, bigquery
+from google.cloud.bigquery import SchemaField
 
 load_dotenv()
 
 app = Flask(__name__)
 bucket_name = os.getenv("BUCKET")
 
-# service_account_file = 'GCP_SA.json'
-# credentials = service_account.Credentials.from_service_account_file(service_account_file)
 bq_client = bigquery.Client()
 table_id = os.environ['MODEL_MONITORING_TABLE_ID']
 
-def create_or_get_logging_table_bq(client, table_id, schema):
+def create_logging_table_schema():
+    """Build the table schema for the logging table
+        
+        Returns:
+            List: List of `SchemaField` objects"""
+    return [
+        SchemaField("n_input_rows", "INTEGER", mode="REQUIRED"),
+        SchemaField("predictions", "STRING", mode="REQUIRED"),
+        SchemaField("timestamp", "TIMESTAMP", mode="REQUIRED"),
+        SchemaField("total_latency", "FLOAT", mode="REQUIRED"),
+        SchemaField("average_latency_per_row", "FLOAT", mode="REQUIRED"),
+    ]
+
+def create_or_get_logging_table_bq(client, table_id):
     """Create a Logging table in BQ if it doesn't exist
     
     Args:
         client (bigquery.client.Client): A BigQuery Client
-        table_id (str): The ID of the table to create
-        schema (List): List of `SchemaField` objects
-        
+        table_id (str): The ID of the table to create        
     Returns:
         None"""
     try:
@@ -35,9 +47,10 @@ def create_or_get_logging_table_bq(client, table_id, schema):
     except Exception as e:
         print(e)
         print(f"Table {table_id} not found. Creating table...")
-        # table = bigquery.Table(table_id, schema=schema)
-        # client.create_table(table)  # Make an API request.
-        # print("Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id))
+        schema = create_logging_table_schema()
+        table = bigquery.Table(table_id, schema)
+        client.create_table(table)
+        print(f"Created table {table.project}.{table.dataset_id}.{table.table_id}")
 
 def initialize_client_and_bucket(bucket_name=bucket_name):
     """
@@ -179,8 +192,10 @@ def predict():
         Response: A Flask response containing JSON-formatted predictions.
     """
     request_json = request.get_json()
-    
-    ## PROCESS HERE ##
+
+    # Prediction Start
+    prediction_start_time = time.time()
+    current_timestamp = datetime.now().isoformat()
 
     if not request_json:
         return jsonify({"error": "Invalid input, no JSON payload provided"}), 400
@@ -196,19 +211,30 @@ def predict():
         return jsonify({"error": "Invalid input shape"}), 400
     features = input_array.copy()
     input_array = data_preprocess_pipeline(features)
+    predictions = model.predict(input_array)
 
+    # Prediction End
+    prediction_end_time = time.time()
+    prediction_latency = prediction_end_time - prediction_start_time
 
-    prediction = model.predict(input_array)
-    return jsonify({"predictions": prediction.tolist()})
+    # Insert rows to BQ
+    log_latency_data = [{
+        "n_input_rows" : len(input_array),
+        "predictions": ", ".join(predictions.tolist()),
+        "timestamp": current_timestamp,
+        "total_latency": prediction_latency,
+        "average_latency_per_row":prediction_latency / len(input_array),
+    }]
+    errors = bq_client.insert_rows_json(table_id, log_latency_data)
+
+    return jsonify({"predictions": predictions.tolist()})
 
     
 # Workflow
-create_or_get_logging_table_bq(bq_client, table_id, schema=None)
+create_or_get_logging_table_bq(bq_client, table_id)
 storage_client, bucket = initialize_client_and_bucket()
 scaler = load_scaler(bucket=bucket)
 model = load_model(bucket=bucket)
-
-
 
 if __name__ == '__main__':
     print("Started predict.py ")
