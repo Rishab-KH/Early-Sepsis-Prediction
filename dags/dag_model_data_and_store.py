@@ -33,7 +33,7 @@ with DAG(
         replica_count=1,
         machine_type="n1-standard-4",
         region="us-central1",
-        args=[f'--gcs_bucket_path={config.bucket}/data/processed_data',f'--model_dir=gs://{config.bucket}/models'],
+        args=[f'--gcs_bucket_path={config.bucket}/data/processed_data',f'--model_dir=gs://{config.bucket}/model-run-{datetime.now().strftime("%Y%m%d-%H%M%S")}'],
         gcp_conn_id=config.GCP_CONN_ID
     )
     task_dummy_end = DummyOperator(task_id='end_task')
