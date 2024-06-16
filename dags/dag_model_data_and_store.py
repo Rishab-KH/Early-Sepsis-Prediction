@@ -30,6 +30,7 @@ with DAG(
         task_id="train_sepsis_on_vertex_ai",
         display_name=f"train_sepsis_on_vertex_ai",
         container_uri="us-central1-docker.pkg.dev/leafy-sunrise-425218-h4/sepsis-mlops-repo/train_pipeline:latest",
+        staging_bucket=f"gs://{config.bucket}",
         replica_count=1,
         machine_type="n1-standard-4",
         region="us-central1",
