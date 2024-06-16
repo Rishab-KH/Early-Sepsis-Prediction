@@ -71,6 +71,7 @@ Following are the prerequisites of our project:
 - Google Cloud Platform
 - Python
 - Streamlit
+- Flask
 
 ## DAG 1 - DATA PRE-PROCESSING 
 
