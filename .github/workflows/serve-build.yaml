@@ -4,7 +4,7 @@ on:
   push:
     paths:
     - 'src/serve/**'
-    - '.github/workflows/**'
+    - '.github/workflows/serve-build.yaml'
     branches:
     - 'main'
 
@@ -30,3 +30,15 @@ jobs:
         gcloud auth configure-docker us-central1-docker.pkg.dev
         docker build -t us-central1-docker.pkg.dev/$GOOGLE_PROJECT/sepsis-mlops-repo/serve_pipeline:latest src/serve/
         docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT/sepsis-mlops-repo/serve_pipeline:latest
+
+    - name: Deploy Serve on Google Cloud Run
+      env:
+          GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
+      run: |
+        gcloud run deploy sepsis-predict \
+          --image us-central1-docker.pkg.dev/$GOOGLE_PROJECT/sepsis-mlops-repo/serve_pipeline:latest \
+          --region us-central1 \
+          --memory 512Mi \
+          --allow-unauthenticated \
+          --port 8080 \
+          --tag prod
