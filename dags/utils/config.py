@@ -7,6 +7,7 @@ gsutil_URL= 'gs://sepsis-prediction-mlops'
 
 # bucket name
 bucket = 'sepsis-prediction-mlops'
+output_bucket = 'sepsis-prediction-outputs'
 
 # data directory
 DATA_DIR = 'gs://sepsis-prediction-mlops/data/modified_data/finalDataset-000000000000.csv'
