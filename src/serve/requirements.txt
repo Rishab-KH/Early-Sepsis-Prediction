@@ -1,7 +1,9 @@
+pandas
+numpy
 Flask
 google-cloud-storage
 joblib
+setuptools==59.8.0
 scikit_learn==1.1.2
-pandas==1.5.3
 gcsfs>=2021.4.0
 python-dotenv
