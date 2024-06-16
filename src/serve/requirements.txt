@@ -8,3 +8,6 @@ scikit_learn==1.1.2
 gcsfs>=2021.4.0
 python-dotenv
 xgboost==1.7.5
+google-cloud-logging
+google-auth
+google-cloud-bigquery
