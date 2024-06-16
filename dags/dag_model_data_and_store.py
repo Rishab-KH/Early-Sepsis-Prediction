@@ -34,7 +34,8 @@ with DAG(
         machine_type="n1-standard-4",
         region="us-central1",
         args=[f'--gcs_bucket_path={config.bucket}/data/processed_data',f'--model_dir=gs://{config.bucket}/model-run-{datetime.now().strftime("%Y%m%d-%H%M%S")}'],
-        gcp_conn_id=config.GCP_CONN_ID
+        gcp_conn_id=config.GCP_CONN_ID,
+        project_id=config.GCP_PROJECT_NAME
     )
     task_dummy_end = DummyOperator(task_id='end_task')
 
