@@ -95,7 +95,7 @@ def pre_process_split_data(data):
 def train_models(X_train, X_val, y_train, y_val):
 
     hyperparameter_set = [
-        {'model': RandomForestClassifier(), 'model_name': 'Random_Forest_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [None, 10, 20], 'min_samples_split': [2, 5, 10]}},
+        # {'model': RandomForestClassifier(), 'model_name': 'Random_Forest_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [None, 10, 20], 'min_samples_split': [2, 5, 10]}},
         {'model': XGBClassifier(),  'model_name': 'XGB_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [3, 6, 9], 'learning_rate': [0.01, 0.1, 0.2]}},
         {'model': LogisticRegression(max_iter=200),  'model_name': 'Logistic_Regression', 'params': {'C': [0.1, 1, 10], 'solver': ['liblinear', 'lbfgs']}}
         ]
@@ -183,16 +183,19 @@ def evaluate_best_model(best_model, best_model_name, X_val, y_val):
 
 def save_and_upload_artifacts(best_model, metrics, arguments):
 
-    model_ext = "/model.pkl"
-    metrics_ext = "/metrics.json"
+    model_name = "model.pkl"
+    metrics_name = "metrics.json"
+
+    local_model_path = model_name
+    local_metrics_path = metrics_name
+
+    save_pickle_files(local_model_path, best_model)
+    save_json_file(local_metrics_path, metrics)
 
     # Upload model and results artifact to Cloud Storage
     model_directory = arguments['model_dir']
-    model_storage_path = os.path.join(model_directory, model_ext)
-    results_storage_path = os.path.join(model_directory, metrics_ext)
-
-    save_pickle_files(model_storage_path, best_model)
-    save_json_file(results_storage_path, metrics)
+    model_storage_path = os.path.join(model_directory,model_name)
+    results_storage_path = os.path.join(model_directory,metrics_name)
 
     # # Upload model and results artifact to Cloud Storage
     # model_directory = arguments['model_dir']
@@ -200,13 +203,15 @@ def save_and_upload_artifacts(best_model, metrics, arguments):
     if model_directory == "":
         print("Training is run locally - skipping model saving to GCS.")
     else:
-        
-        model_blob = storage.blob.Blob.from_string(model_storage_path, client=storage.Client())
-        model_blob.upload_from_(model_storage_path)
-        metrics_blob = storage.blob.Blob.from_string(results_storage_path, client=storage.Client())
-        metrics_blob.upload_from_filename(results_storage_path)
+        model_storage_path = os.path.join(model_directory,model_name)
+        blob = storage.blob.Blob.from_string(model_storage_path, client=storage.Client())
+        blob.upload_from_filename(local_model_path)
         logging.info("model exported to : {}".format(model_storage_path))
-        logging.info("results exported to : {}".format(results_storage_path))
+
+        results_storage_path = os.path.join(model_directory,metrics_name)
+        blob = storage.blob.Blob.from_string(results_storage_path, client=storage.Client())
+        blob.upload_from_filename(local_metrics_path)
+        logging.info("metrics exported to : {}".format(results_storage_path))
 
 
 
