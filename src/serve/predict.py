@@ -7,11 +7,38 @@ from flask import Flask, jsonify, request
 from google.cloud import storage
 import numpy as np
 import pandas as pd
+from google.cloud import storage, logging, bigquery
+from google.oauth2 import service_account
 
 load_dotenv()
 
 app = Flask(__name__)
 bucket_name = os.getenv("BUCKET")
+
+# service_account_file = 'GCP_SA.json'
+# credentials = service_account.Credentials.from_service_account_file(service_account_file)
+bq_client = bigquery.Client()
+table_id = os.environ['MODEL_MONITORING_TABLE_ID']
+
+def create_or_get_logging_table_bq(client, table_id, schema):
+    """Create a Logging table in BQ if it doesn't exist
+    
+    Args:
+        client (bigquery.client.Client): A BigQuery Client
+        table_id (str): The ID of the table to create
+        schema (List): List of `SchemaField` objects
+        
+    Returns:
+        None"""
+    try:
+        client.get_table(table_id)  # Make an API request.
+        print(f"Table {table_id} already exists.")
+    except Exception as e:
+        print(e)
+        print(f"Table {table_id} not found. Creating table...")
+        # table = bigquery.Table(table_id, schema=schema)
+        # client.create_table(table)  # Make an API request.
+        # print("Created table {}.{}.{}".format(table.project, table.dataset_id, table.table_id))
 
 def initialize_client_and_bucket(bucket_name=bucket_name):
     """
@@ -176,7 +203,8 @@ def predict():
     return jsonify({"predictions": prediction.tolist()})
 
     
-
+# Workflow
+create_or_get_logging_table_bq(bq_client, table_id, schema=None)
 storage_client, bucket = initialize_client_and_bucket()
 scaler = load_scaler(bucket=bucket)
 model = load_model(bucket=bucket)
