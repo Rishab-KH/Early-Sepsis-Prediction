@@ -7,8 +7,7 @@ from flask import Flask, jsonify, request
 from google.cloud import storage
 import numpy as np
 import pandas as pd
-from google.cloud import storage, logging, bigquery
-from google.oauth2 import service_account
+from google.cloud import storage, bigquery
 
 load_dotenv()
 
