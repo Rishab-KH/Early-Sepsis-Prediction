@@ -11,7 +11,7 @@ import pandas as pd
 load_dotenv()
 
 app = Flask(__name__)
-bucket_name = os.environ["BUCKET"]
+bucket_name = os.getenv("BUCKET")
 
 def initialize_client_and_bucket(bucket_name=bucket_name):
     """
@@ -21,11 +21,7 @@ def initialize_client_and_bucket(bucket_name=bucket_name):
     Returns:
         tuple: The storage client and bucket object.
     """
-    key_path = "/Users/sharanyasenthil/.gcp.json"
-
-
-    
-    storage_client = storage.Client.from_service_account_json(key_path)
+    storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
     return storage_client, bucket
 
@@ -52,8 +48,8 @@ def load_model(bucket, models_prefix='models'):
         match = re.search(r'model-run-(\d+)-(\d+)', blob.name)
         if match:
             print("Match Name: ", blob.name)
-            timestamp = int(match.group(1) + match.group(2)) 
-            model_folders[timestamp] = blob.name.split('/')[1] 
+            timestamp = int(match.group(1) + match.group(2))  # Concatenate the timestamp
+            model_folders[timestamp] = blob.name.split('/')[1]  # Extract folder name
 
     if not model_folders:
         raise Exception("No model folders found in the specified bucket and prefix.")
@@ -67,7 +63,6 @@ def load_model(bucket, models_prefix='models'):
     print("Loaded Model")
 
     return model
-
 
 def data_preprocess_pipeline(features):
     if True:
@@ -142,8 +137,7 @@ def data_preprocess_pipeline(features):
     #     raise
 
 
-
-@app.route("/"+os.environ['AIP_HEALTH_ROUTE'], methods=['GET'])
+@app.route(os.environ['AIP_HEALTH_ROUTE'], methods=['GET'])
 def health_check():
     """Health check endpoint that returns the status of the server.
     Returns:
@@ -151,7 +145,7 @@ def health_check():
     """
     return {"status": "The app is healthy"}
 
-@app.route("/"+os.environ['AIP_PREDICT_ROUTE'], methods=['POST'])
+@app.route(os.environ['AIP_PREDICT_ROUTE'], methods=['POST'])
 def predict():
     """
     Prediction route that normalizes input data, and returns model predictions.
@@ -160,6 +154,7 @@ def predict():
     """
     request_json = request.get_json()
     
+    ## PROCESS HERE ##
 
     if not request_json:
         return jsonify({"error": "Invalid input, no JSON payload provided"}), 400
@@ -180,7 +175,6 @@ def predict():
     prediction = model.predict(input_array)
     return jsonify({"predictions": prediction.tolist()})
 
-
     
 
 storage_client, bucket = initialize_client_and_bucket()
@@ -191,4 +185,4 @@ model = load_model(bucket=bucket)
 
 if __name__ == '__main__':
     print("Started predict.py ")
-    app.run(host='0.0.0.0', port=os.environ["AIP_HTTP_PORT"],debug=True)
+    app.run(host='0.0.0.0', port=os.environ["AIP_HTTP_PORT"])

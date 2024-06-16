@@ -30,11 +30,13 @@ with DAG(
         task_id="train_sepsis_on_vertex_ai",
         display_name=f"train_sepsis_on_vertex_ai",
         container_uri="us-central1-docker.pkg.dev/leafy-sunrise-425218-h4/sepsis-mlops-repo/train_pipeline:latest",
+        staging_bucket=f"gs://{config.output_bucket}",
         replica_count=1,
         machine_type="n1-standard-4",
         region="us-central1",
-        args=['--gcs_bucket_path=sepsis-prediction-mlops/data/processed_data','--model_dir=gs://sepsis-prediction-mlops/models'],
-        gcp_conn_id=config.GCP_CONN_ID
+        args=[f'--gcs_bucket_path={config.bucket}/data/processed_data',f'--model_dir=gs://{config.bucket}/models/model-run-{datetime.now().strftime("%Y%m%d-%H%M%S")}'],
+        gcp_conn_id=config.GCP_CONN_ID,
+        project_id=config.GCP_PROJECT_NAME
     )
     task_dummy_end = DummyOperator(task_id='end_task')
 
