@@ -17,17 +17,17 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, confusion_matrix, classification_report
-
+from dotenv import load_dotenv
 from xgboost import XGBClassifier
-# Custom imports
-import dags.utils.config as config
+
+load_dotenv()
 
 # Setup logging and parser
 logging.basicConfig(level=logging.INFO)
 parser = argparse.ArgumentParser()
 
 # Set tracking URI for MLFlow
-mlflow.set_tracking_uri(config.TRACKING_URI)
+mlflow.set_tracking_uri(os.getenv("TRACKING_URI"))
 
 # Input Arguments
 parser.add_argument(
@@ -99,7 +99,6 @@ def train_models(X_train, X_val, y_train, y_val):
         {'model': XGBClassifier(),  'model_name': 'XGB_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [3, 6, 9], 'learning_rate': [0.01, 0.1, 0.2]}},
         {'model': LogisticRegression(max_iter=200),  'model_name': 'Logistic_Regression', 'params': {'C': [0.1, 1, 10], 'solver': ['liblinear', 'lbfgs']}}
         ]
-    # X_train, X_val, y_train, y_val = pre_process_split_data()
 
     best_candidates = {}
 

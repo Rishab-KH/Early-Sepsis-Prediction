@@ -6,3 +6,4 @@ setuptools==59.8.0
 gcsfs>=2021.4.0
 mlflow
 xgboost
+python-dotenv
