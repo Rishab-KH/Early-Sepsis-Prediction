@@ -6,12 +6,13 @@ import sys
 from airflow.models import Variable
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
-from dags.utils.schema_stats_utils import schema_and_stats_validation
+
 
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
 import dags.utils.config as config
+from dags.utils.schema_stats_utils import schema_and_stats_validation
 
 default_args = {
     "owner": 'airflow',
@@ -62,11 +63,14 @@ with DAG(
         python_callable = set_next_batch_folder
     )
 
+    task_get_data_directory = PythonOperator(
+        task_id = "get_data_location",
+        python_callable=lambda: config.DATA_DIR
+    )
+
     task_data_schema_and_statastics_validation = BranchPythonOperator(
         task_id='if_validate_data_schema_and_stats',
-        python_callable=schema_and_stats_validation,
-        op_kwargs={'data': f"{config.gsutil_URL}/"},
-        provide_context=True
+        python_callable=schema_and_stats_validation
     )
 
     task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv >> task_set_batch_number_to_process

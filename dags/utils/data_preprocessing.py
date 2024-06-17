@@ -10,7 +10,6 @@ from dags.utils.helper import load_data_from_pickle, save_data_to_pickle
 
 # Logger setup for data preprocessing
 logger = setup_logging(config.PROJECT_ROOT, "data_preprocessing.py")
-DATA_DIR = config.DATA_DIR
 
 def data_preprocess_pipeline(data_input, target_input, data_output):
 

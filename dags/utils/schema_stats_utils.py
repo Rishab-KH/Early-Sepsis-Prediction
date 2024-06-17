@@ -9,18 +9,18 @@ from dags.utils.log_config import setup_logging
 from dags.utils.data_validation import generate_and_save_schema_and_stats, validate_data
 
 # Logger setup for schema and stats validation
-DATA_DIR = config.DATA_DIR
+# DATA_DIR = config.DATA_DIR
 STATS_SCHEMA_FILE = config.STATS_SCHEMA_FILE
 
 
 logger = setup_logging(config.PROJECT_ROOT, "schema_stats_utils.py")
 
-def schema_stats_gen():
+def schema_stats_gen(ti):
     try:
-        df=pd.read_csv(DATA_DIR, sep=",")
+        df=pd.read_csv(ti.xcom_pull('get_data_location'), sep=",")
         logger.info(f"Data loaded successfully.")
     except FileNotFoundError as e:
-        logger.error(f"File not found: {DATA_DIR}. Error: {e}")
+        logger.error(f"File not found: {ti.xcom_pull('get_data_location')}. Error: {e}")
         raise ValueError("Failed to Load Data for Schema and Statstics Validation. Stopping DAG execution.")
 
     generation_result=generate_and_save_schema_and_stats(df, STATS_SCHEMA_FILE)
@@ -32,7 +32,7 @@ def schema_and_stats_validation(ti):
         df=pd.read_csv(ti.xcom_pull('get_data_location'), sep=",")
         logger.info(f"Data loaded successfully.")
     except FileNotFoundError as e:
-        logger.error(f"File not found: {DATA_DIR}. Error: {e}")
+        logger.error(f"File not found: {ti.xcom_pull('get_data_location')}. Error: {e}")
         raise ValueError("Failed to Load Data for Schema and Statstics Validation. Stopping DAG execution.")
     validation_result, validation_message = validate_data(df)
     ti.xcom_push(key='validation_message', value=validation_message)
