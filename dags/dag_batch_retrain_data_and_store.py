@@ -50,7 +50,7 @@ with DAG(
             "useLegacySql": False
         }
     },
-    params = {"psv_uri": "gs://sepsis-prediction-mlops/data/batch/batch-1/*.psv", "csv_uri": "gs://sepsis-prediction-mlops/data/modified_data/batch-1/finalDataset-*.csv"}
+    params = {"psv_uri": "'gs://sepsis-prediction-mlops/data/batch/batch-1/*.psv'", "csv_uri": "'gs://sepsis-prediction-mlops/data/modified_data/batch-1/finalDataset-*.csv'"}
     )
 
     task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv
