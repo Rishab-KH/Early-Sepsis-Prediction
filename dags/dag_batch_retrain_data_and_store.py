@@ -20,15 +20,13 @@ default_args = {
 
 def get_next_batch_folder():
     last_folder = Variable.get("last_processed_batch", default_var="batch-1")
-    print(last_folder)
     return last_folder
 
 def set_next_batch_folder():
     last_folder = Variable.get("last_processed_batch", default_var="batch-1")
     folder_number = int(last_folder.strip('batch-'))
     next_folder = f"batch-{folder_number + 1}"
-    print(next_folder)
-    Variable.set("last_processed_folder", next_folder)
+    Variable.set("last_processed_batch", next_folder)
 
 with DAG(
     dag_id = "batch_train_model_data_and_store",
