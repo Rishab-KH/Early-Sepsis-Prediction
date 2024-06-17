@@ -3,21 +3,23 @@ from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
 import os
 import pandas as pd
+import re
 import sys
 from airflow.models import Variable
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from airflow.operators.email import EmailOperator
+from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, confusion_matrix, classification_report
 from google.cloud import storage
 
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
 import dags.utils.config as config
-from dags.utils.helper import prepare_email_content, save_data_to_pickle
+from dags.utils.helper import prepare_email_content, save_data_to_pickle, load_data_from_pickle
 from dags.utils.schema_stats_utils import schema_and_stats_validation
 from dags.utils.data_preprocessing import data_preprocess_pipeline 
-from dags.utils.data_scale_utils import scale_train_data, scale_test_data
+from dags.utils.data_scale_utils import scale_test_data
 
 default_args = {
     "owner": 'airflow',
@@ -62,6 +64,51 @@ def download_scaler():
     bucket = storage_client.bucket(config.bucket)
     blob = bucket.blob("artifacts/scaler.pkl")
     blob.download_to_filename("scaler.pkl")
+    print("Downloaded Scaler")
+
+def download_latest_model():
+    storage_client = storage.Client.create_anonymous_client()
+    bucket = storage_client.bucket(config.bucket)
+    blobs = list(bucket.list_blobs(prefix="models"))
+    model_folders = {}
+    for blob in blobs:
+        match = re.search(r'model-run-(\d+)-(\d+)', blob.name)
+        if match:
+            print("Match Name: ", blob.name)
+            timestamp = int(match.group(1) + match.group(2))  # Concatenate the timestamp
+            model_folders[timestamp] = blob.name.split('/')[1]  # Extract folder name
+
+    if not model_folders:
+        raise Exception("No model folders found in the specified bucket and prefix.")
+
+    latest_model_folder = model_folders[max(model_folders.keys())]
+    print("Latest Model: ", latest_model_folder)
+    
+    model_dir = f'models/{latest_model_folder}/model.pkl'
+    print("Model Directory: ", model_dir)
+    blob = bucket.blob(model_dir)
+    blob.download_to_filename("model.pkl")
+    print("Downloaded Model")
+
+def execute_model_and_get_results():
+    X = load_data_from_pickle("X_processed_scaled.pkl")
+    y_val = load_data_from_pickle("y.pkl")
+    model = load_data_from_pickle("model.pkl")
+
+    y_pred = model.predict(X)
+    
+    accuracy = accuracy_score(y_val, y_pred)
+    precision = precision_score(y_val, y_pred, average='weighted')
+    recall = recall_score(y_val, y_pred, average='weighted')
+    f1 = f1_score(y_val, y_pred, average='weighted')
+    conf_matrix = confusion_matrix(y_val, y_pred)
+    class_report = classification_report(y_val, y_pred)
+
+    metrics = {'accuracy': accuracy,
+                    'precision': precision,
+                    'recall': recall,
+                    'f1_score': f1,}
+    print(metrics)
 
 with DAG(
     dag_id = "batch_train_model_data_and_store",
@@ -117,7 +164,7 @@ with DAG(
     )
 
     task_save_data_pickle = PythonOperator(
-        task_id='save_data_pickle',
+        task_id='download_data',
         python_callable=save_data_pickle,
         trigger_rule='none_failed'
     )
@@ -125,6 +172,12 @@ with DAG(
     task_download_scaler = PythonOperator(
         task_id='download_scaler',
         python_callable=download_scaler,
+        trigger_rule='none_failed'
+    )
+
+    task_download_latest_model = PythonOperator(
+        task_id='download_latest_model',
+        python_callable=download_latest_model,
         trigger_rule='none_failed'
     )
 
@@ -137,11 +190,18 @@ with DAG(
     task_scale_data = PythonOperator(
         task_id='scale_data',
         python_callable=scale_test_data,
-        op_kwargs={'data_pkl': 'X_processed.pkl', 'scaler_pkl': 'scaler.pkl'}
+        op_kwargs={'data_pkl': 'X_processed.pkl', 'scaler_pkl': 'scaler.pkl','output_pkl':'X_processed_scaled.pkl'}
     )
 
-    task_model_results = DummyOperator(task_id='get_model_results')
+    task_execute_model_and_get_results = PythonOperator(
+        task_id='execute_model_and_get_results',
+        python_callable=execute_model_and_get_results
+    )
+
+
+
+    # task_model_results = DummyOperator(task_id='get_model_results')
 
     task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv >> task_get_data_directory >> task_data_schema_and_statastics_validation
     task_data_schema_and_statastics_validation >> task_prepare_email_validation_failed >> task_send_email_validation_failed
-    task_data_schema_and_statastics_validation >> [task_download_scaler, task_save_data_pickle] >> task_batch_data_preprocessing >> task_scale_data >> task_model_results >> task_set_batch_number_to_process
+    task_data_schema_and_statastics_validation >> [task_download_scaler, task_save_data_pickle, task_download_latest_model] >> task_batch_data_preprocessing >> task_scale_data >> task_execute_model_and_get_results >> task_set_batch_number_to_process

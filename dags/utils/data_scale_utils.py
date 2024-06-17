@@ -34,7 +34,7 @@ def scale_train_data(data_pkl, scaler_pkl):
     except Exception as e:
         logger.error(f"An unexpected error occurred during scaling the training data: {e}")
 
-def scale_test_data(data_pkl, scaler_pkl):
+def scale_test_data(data_pkl, scaler_pkl, output_pkl):
     """
     Load, scale, and save the test data using the pre-fitted scaler.
 
@@ -50,7 +50,7 @@ def scale_test_data(data_pkl, scaler_pkl):
         columns_to_scale = ['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine', 'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets']
         X_test_processed_df[columns_to_scale] = scaler.transform(X_test_processed_df[columns_to_scale])
         
-        save_data_to_pickle(X_test_processed_df, 'X_test_processed_scaled.pkl')
+        save_data_to_pickle(X_test_processed_df, output_pkl)
         logger.info("Test data scaled and saved successfully.")
         
     except FileNotFoundError as e:

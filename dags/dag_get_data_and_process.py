@@ -145,7 +145,7 @@ with DAG(
     task_scale_test_data = PythonOperator(
         task_id='scale_test_data',
         python_callable=scale_test_data,
-        op_kwargs={'data_pkl': 'X_test_processed.pkl', 'scaler_pkl': 'scaler.pkl'}
+        op_kwargs={'data_pkl': 'X_test_processed.pkl', 'scaler_pkl': 'scaler.pkl','output_pkl':'X_test_processed_scaled.pkl'}
     )
 
     task_push_scaler = LocalFilesystemToGCSOperator(
