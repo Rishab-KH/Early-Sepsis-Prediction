@@ -29,7 +29,7 @@ def schema_stats_gen():
 
 def schema_and_stats_validation(ti):
     try:
-        df=pd.read_csv(DATA_DIR, sep=",")
+        df=pd.read_csv(ti.xcom_pull('get_data_location'), sep=",")
         logger.info(f"Data loaded successfully.")
     except FileNotFoundError as e:
         logger.error(f"File not found: {DATA_DIR}. Error: {e}")

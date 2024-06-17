@@ -4,8 +4,9 @@ from datetime import datetime, timedelta
 import os
 import sys
 from airflow.models import Variable
-from airflow.operators.python import PythonOperator
+from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
+from dags.utils.schema_stats_utils import schema_and_stats_validation
 
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
@@ -41,7 +42,7 @@ with DAG(
     template_searchpath=["/opt/airflow/dags/utils"]
 ) as dag:
     task_get_batch_number_to_process = PythonOperator(
-        task_id = "get_batch_number_to_process",
+        task_id = "get_batch_number",
         python_callable = get_next_batch_folder
     )
 
@@ -57,8 +58,15 @@ with DAG(
     )
 
     task_set_batch_number_to_process = PythonOperator(
-        task_id = "set_batch_number_to_process",
+        task_id = "set_batch_number",
         python_callable = set_next_batch_folder
+    )
+
+    task_data_schema_and_statastics_validation = BranchPythonOperator(
+        task_id='if_validate_data_schema_and_stats',
+        python_callable=schema_and_stats_validation,
+        op_kwargs={'data': f"{config.gsutil_URL}/"},
+        provide_context=True
     )
 
     task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv >> task_set_batch_number_to_process

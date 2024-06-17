@@ -104,6 +104,11 @@ with DAG(
     }
     )
 
+    task_get_data_directory = PythonOperator(
+        task_id = "get_data_location",
+        python_callable=lambda: config.DATA_DIR
+    )
+
     task_if_schema_generation_required = BranchPythonOperator(
     task_id='if_schema_exists',
     python_callable=branch_logic_schema_generation
