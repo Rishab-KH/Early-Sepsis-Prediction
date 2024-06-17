@@ -4,13 +4,13 @@ protobuf==4.21.6
 scikit_learn==1.1.2
 setuptools==59.8.0
 gcsfs>=2021.4.0
+
 mlflow
 xgboost
+joblib
 python-dotenv
+
 google-cloud-logging
-python-dotenv
 google-auth
 google-cloud-bigquery
-Flask
 google-cloud-storage
-joblib
