@@ -55,7 +55,7 @@ with DAG(
     )
 
     task_set_batch_number_to_process = PythonOperator(
-        task_id = "get_batch_number_to_process",
+        task_id = "set_batch_number_to_process",
         python_callable = set_next_batch_folder
     )
 
