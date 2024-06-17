@@ -125,6 +125,8 @@ def data_preprocess_pipeline(features):
         X_preprocessed = df.reset_index(drop=True)
         
         X_preprocessed = X_preprocessed.drop(columns=X_preprocessed.columns[X_preprocessed.columns.str.contains('^Unnamed', case=False, regex=True)])
+        columns_to_scale = ['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine', 'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets']
+        X_preprocessed[columns_to_scale] = scaler.transform(X_preprocessed[columns_to_scale])
         X_preprocessed_scaled = scaler.transform(X_preprocessed)
         return X_preprocessed_scaled
         
