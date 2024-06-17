@@ -65,7 +65,7 @@ with DAG(
 
     task_get_data_directory = PythonOperator(
         task_id = "get_data_location",
-        python_callable=lambda: config.DATA_DIR
+        python_callable=lambda: config.DATA_DIR 
     )
 
     task_data_schema_and_statastics_validation = BranchPythonOperator(
