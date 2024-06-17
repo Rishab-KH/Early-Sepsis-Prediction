@@ -1,8 +1,5 @@
 pandas==1.5.3
 numpy==1.23.5
-Flask
-google-cloud-storage
-joblib
 setuptools==59.8.0
 scikit_learn==1.1.2
 gcsfs>=2021.4.0
@@ -11,3 +8,6 @@ xgboost
 google-cloud-logging
 google-auth
 google-cloud-bigquery
+Flask
+google-cloud-storage
+joblib
