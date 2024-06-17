@@ -28,8 +28,9 @@ def schema_stats_gen(ti):
         raise ValueError("Schema and Statstics Generation failed. Stopping DAG execution.")
 
 def schema_and_stats_validation(ti):
+    data_dir = ti.xcom_pull('get_data_location')
     try:
-        df=pd.read_csv(ti.xcom_pull('get_data_location'), sep=",")
+        df=pd.read_csv(data_dir, sep=",")
         logger.info(f"Data loaded successfully.")
     except FileNotFoundError as e:
         logger.error(f"File not found: {ti.xcom_pull('get_data_location')}. Error: {e}")
@@ -37,5 +38,7 @@ def schema_and_stats_validation(ti):
     validation_result, validation_message = validate_data(df)
     ti.xcom_push(key='validation_message', value=validation_message)
     if validation_result:
+        if "batch" in data_dir: # If we have batch-x in gs:// that mean we are running retrain pipeline
+            return "xyz"
         return 'train_test_split'
     return 'prepare_email_content'

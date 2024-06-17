@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
 import dags.utils.config as config
-from dags.utils.helper import clean_pickle_files
+from dags.utils.helper import clean_pickle_files,  prepare_email_content
 from dags.utils.data_preprocessing import data_preprocess_pipeline 
 from dags.utils.data_split_utils import train_test_split
 from dags.utils.data_scale_utils import scale_train_data, scale_test_data
@@ -54,34 +54,6 @@ def branch_logic_schema_generation():
         return 'if_validate_data_schema_and_stats'
     else:
         return 'generate_schema_and_stats'
-
-def prepare_email_content(**context):
-    ti = context['ti']
-    validation_message = ti.xcom_pull(task_ids='if_validate_data_schema_and_stats', key='validation_message')
-    
-    dag_run = context['dag_run']
-    dag_id = dag_run.dag_id
-    execution_date = dag_run.execution_date.isoformat()
-    task_id = ti.task_id
-    owner = ti.task.dag.owner
-    
-    # Constructing the HTML content for the email.
-    html_content = f"""
-    <h3>Validation of Schema/Stats Failed</h3>
-    <p>Find the error below:</p>
-    <p>{validation_message}</p>
-    <br>
-    <strong>DAG Details:</strong>
-    <ul>
-        <li>DAG ID: {dag_id}</li>
-        <li>Task ID: {task_id}</li>
-        <li>Execution Date: {str(execution_date)}</li>
-        <li>Owner: {owner}</li>
-    </ul>
-    <p>This is an automated message from Airflow. Please do not reply directly to this email.</p>
-    """
-    return html_content
-
 
 with DAG(
     dag_id = "train_data_preprocess_with_gcp",
@@ -142,7 +114,7 @@ with DAG(
     task_send_email_validation_failed = EmailOperator(
         task_id='email_validation_failed',
         to='derilraju@gmail.com',
-        subject='Airflow Alert',
+        subject='Airflow Alert - Initial Train Pipeline',
         html_content="{{ task_instance.xcom_pull(task_ids='prepare_email_content') }}"
     )
 
