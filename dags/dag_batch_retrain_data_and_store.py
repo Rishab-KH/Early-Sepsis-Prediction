@@ -112,6 +112,9 @@ def execute_model_and_get_results():
     # SAVE JSON IF REQUIRED, LATER FOR COMPARISONS
     print(metrics)
 
+def merge_batch_and_existing_data():
+    pass
+
 with DAG(
     dag_id = "batch_train_model_data_and_store",
     description = "This DAG is responsible for training in batches",
@@ -201,6 +204,11 @@ with DAG(
     )
 
     task_track_model_drift = DummyOperator(task_id='track_model_drift')
+
+    task_merge_batch_and_existing_data = PythonOperator(
+        task_id='merge_batch_and_existing_data',
+        python_callable=merge_batch_and_existing_data
+    )
 
     task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv >> task_get_data_directory >> task_data_schema_and_statastics_validation
     task_data_schema_and_statastics_validation >> task_prepare_email_validation_failed >> task_send_email_validation_failed
