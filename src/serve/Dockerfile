@@ -15,6 +15,7 @@ ENV BUCKET=sepsis-prediction-mlops
 ENV AIP_HEALTH_ROUTE=/ping
 ENV AIP_PREDICT_ROUTE=/predict
 ENV AIP_HTTP_PORT=8080
+ENV MODEL_MONITORING_TABLE_ID=leafy-sunrise-425218-h4.model_monitoring.model_monitoring_prediction
 
 # 5. Sets up the entry point to invoke the trainer.
 ENTRYPOINT ["python", "predict.py"]

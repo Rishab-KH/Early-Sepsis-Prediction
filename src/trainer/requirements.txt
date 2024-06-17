@@ -7,3 +7,4 @@ gcsfs>=2021.4.0
 mlflow
 xgboost
 python-dotenv
+google-cloud-logging
