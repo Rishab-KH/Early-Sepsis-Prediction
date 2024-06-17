@@ -1,5 +1,5 @@
 # Import libraries
-import os, logging, argparse
+import os, argparse
 # Import MLFlow for model training
 import mlflow 
 import pandas as pd
@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 import gcsfs
 from datetime import datetime
+from google.cloud import logging
 import time
 import json
 
@@ -22,9 +23,11 @@ from xgboost import XGBClassifier
 
 load_dotenv()
 
-# Setup logging and parser
-logging.basicConfig(level=logging.INFO)
 parser = argparse.ArgumentParser()
+
+client = logging.Client()
+logger = client.logger('Training_Pipeline')
+logger.log_text(f'Iniatiating Training Pipeline {datetime.now().isoformat()}', severity='INFO')
 
 # Set tracking URI for MLFlow
 mlflow.set_tracking_uri(os.getenv("TRACKING_URI"))
@@ -77,7 +80,7 @@ def pre_process_split_data(data):
     X_val = data['X_test']
     y_train = data['y_train']
     y_val = data['y_test']
-    logging.info("reading gs data: {}".format(f"{arguments['gcs_bucket_path']}"))
+    logger.log_text(f"Reading gs data: {arguments['gcs_bucket_path']}", severity='INFO')
     X = pd.concat([X_train, X_val])
     y = pd.concat([y_train, y_val])
     X.reset_index(drop=True, inplace=True)
@@ -118,8 +121,8 @@ def train_models(X_train, X_val, y_train, y_val):
             f1_val = f1_score(y_val, y_pred_val, average='weighted')
             training_time = end_time - start_time
             
-            logging.info(f"Best parameters for {hyperparams['model_name']}: {best_params}")
-            logging.info(f"Best score for {hyperparams['model_name']}: {grid_search.best_score_}")
+            logger.log_text(f"Best parameters for {hyperparams['model_name']}: {best_params}", severity='INFO')
+            logger.log_text(f"Best score for {hyperparams['model_name']}: {grid_search.best_score_}", severity='INFO')
 
             best_candidates[hyperparams['model_name']] = {
                                         'model': best_model,
@@ -127,7 +130,7 @@ def train_models(X_train, X_val, y_train, y_val):
                                         'f1_score': f1_val,
                                         'training_time': training_time
                                         }
-            logging.info(f"{hyperparams['model_name']} - Best Params: {best_params}, F1 Score: {f1_val}")
+            logger.log_text(f"{hyperparams['model_name']} - Best Params: {best_params}, F1 Score: {f1_val}", severity='INFO')
     
     return best_candidates
         
@@ -135,10 +138,10 @@ def get_best_model(best_candidates):
 
     best_model_name = max(best_candidates, key=lambda x: best_candidates[x]['f1_score'])
     best_model = best_candidates[best_model_name]
-    
-    logging.info(f"Best Model: {best_model_name}")
-    logging.info(f"Best Params: {best_model['params']}")
-    logging.info(f"F1 Score: {best_model['f1_score']}")
+
+    logger.log_text(f"Best Model: {best_model_name}", severity='INFO')
+    logger.log_text(f"Best Params: {best_model['params']}", severity='INFO')
+    logger.log_text(f"F1 Score: {best_model['f1_score']}", severity='INFO')
     
     return best_model, best_model_name
 
@@ -169,15 +172,15 @@ def evaluate_best_model(best_model, best_model_name, X_val, y_val):
         mlflow.log_text(str(conf_matrix), 'confusion_matrix.txt')
         mlflow.log_text(class_report, 'classification_report.txt')
 
-        logging.info(f"Best overall model: {best_model_name}")
-        logging.info(f"Best overall parameters: {best_model['params']}")
-        logging.info(f"Best overall training time: {best_model['training_time']}")
-        logging.info(f"Accuracy: {accuracy}")
-        logging.info(f"Precision: {precision}")
-        logging.info(f"Recall: {recall}")
-        logging.info(f"F1 Score: {f1}")
-        logging.info(f"\nConfusion Matrix:\n{conf_matrix}")
-        logging.info(f"\nClassification Report:\n{class_report}")
+        logger.log_text(f"Best overall model: {best_model_name}", severity='INFO')
+        logger.log_text(f"Best overall parameters: {best_model['params']}", severity='INFO')
+        logger.log_text(f"Best overall training time: {best_model['training_time']}", severity='INFO')
+        logger.log_text(f"Accuracy: {accuracy}", severity='INFO')
+        logger.log_text(f"Precision: {precision}", severity='INFO')
+        logger.log_text(f"Recall: {recall}", severity='INFO')
+        logger.log_text(f"F1 Score: {f1}", severity='INFO')
+        logger.log_text(f"\nConfusion Matrix:\n{conf_matrix}", severity='INFO')
+        logger.log_text(f"\nClassification Report:\n{class_report}", severity='INFO')
 
     return best_overall_model, metrics
 
@@ -206,12 +209,12 @@ def save_and_upload_artifacts(best_model, metrics, arguments):
         model_storage_path = os.path.join(model_directory,model_name)
         blob = storage.blob.Blob.from_string(model_storage_path, client=storage.Client())
         blob.upload_from_filename(local_model_path)
-        logging.info("model exported to : {}".format(model_storage_path))
+        logger.log_text(f"Model exported to : {model_storage_path}", severity='INFO')
 
         results_storage_path = os.path.join(model_directory,metrics_name)
         blob = storage.blob.Blob.from_string(results_storage_path, client=storage.Client())
         blob.upload_from_filename(local_metrics_path)
-        logging.info("metrics exported to : {}".format(results_storage_path))
+        logger.log_text(f"metrics exported to : {results_storage_path}", severity='INFO')
 
 
 
