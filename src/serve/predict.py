@@ -125,8 +125,8 @@ def data_preprocess_pipeline(features):
         X_preprocessed = df.reset_index(drop=True)
         
         X_preprocessed = X_preprocessed.drop(columns=X_preprocessed.columns[X_preprocessed.columns.str.contains('^Unnamed', case=False, regex=True)])
-
-        return X_preprocessed
+        X_preprocessed_scaled = scaler.transform(X_preprocessed)
+        return X_preprocessed_scaled
         
     # except KeyError as ke:
     #     print("KeyError during preprocessing: %s", ke)
