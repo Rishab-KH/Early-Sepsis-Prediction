@@ -220,7 +220,7 @@ def predict():
     # Insert rows to BQ
     log_latency_data = [{
         "n_input_rows" : len(input_array),
-        "predictions": ", ".join(predictions.tolist()),
+        "predictions": ", ".join([str(pred) for pred in predictions.tolist()]),
         "timestamp": current_timestamp,
         "total_latency": prediction_latency,
         "average_latency_per_row":prediction_latency / len(input_array),
