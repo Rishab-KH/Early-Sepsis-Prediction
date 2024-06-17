@@ -2,18 +2,22 @@ from airflow import DAG
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
 import os
+import pandas as pd
 import sys
 from airflow.models import Variable
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from airflow.operators.email import EmailOperator
+from google.cloud import storage
 
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
 import dags.utils.config as config
-from dags.utils.helper import prepare_email_content
+from dags.utils.helper import prepare_email_content, save_data_to_pickle
 from dags.utils.schema_stats_utils import schema_and_stats_validation
+from dags.utils.data_preprocessing import data_preprocess_pipeline 
+from dags.utils.data_scale_utils import scale_train_data, scale_test_data
 
 default_args = {
     "owner": 'airflow',
@@ -38,6 +42,26 @@ def set_next_batch_folder():
 def get_next_batch_gs_location(ti):
     current_batch = ti.xcom_pull('get_batch_number')
     return f"{config.gsutil_URL}/data/modified_data/{current_batch}/finalDataset-000000000000.csv"
+
+def save_data_pickle(ti):
+    try:
+        df = pd.read_csv(ti.xcom_pull('get_data_location'), sep=",")
+
+        X = df.drop('SepsisLabel', axis=1)
+        y = df['SepsisLabel']
+
+        save_data_to_pickle(X, 'X.pkl')
+        save_data_to_pickle(y, 'y.pkl')
+
+    except Exception as ex:
+        print(f"Saving data failed with an exception as {ex}")
+
+def download_scaler():
+    storage_client = storage.Client.create_anonymous_client()
+
+    bucket = storage_client.bucket(config.bucket)
+    blob = bucket.blob("artifacts/scaler.pkl")
+    blob.download_to_filename("scaler.pkl")
 
 with DAG(
     dag_id = "batch_train_model_data_and_store",
@@ -92,8 +116,32 @@ with DAG(
         html_content="{{ task_instance.xcom_pull(task_ids='prepare_email_content') }}"
     )
 
-    task_dummy_end = DummyOperator(task_id='end_task', trigger_rule='none_failed')
+    task_save_data_pickle = PythonOperator(
+        task_id='save_data_pickle',
+        python_callable=save_data_pickle,
+        trigger_rule='none_failed'
+    )
 
-    task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv >> task_set_batch_number_to_process >> task_get_data_directory >> task_data_schema_and_statastics_validation
+    task_download_scaler = PythonOperator(
+        task_id='download_scaler',
+        python_callable=download_scaler,
+        trigger_rule='none_failed'
+    )
+
+    task_batch_data_preprocessing = PythonOperator(
+        task_id='preprocess_batch_data',
+        python_callable=data_preprocess_pipeline,
+        op_kwargs={'data_input': 'X.pkl', 'target_input': 'y.pkl', 'data_output':'X_processed.pkl'}
+    )
+
+    task_scale_data = PythonOperator(
+        task_id='scale_data',
+        python_callable=scale_test_data,
+        op_kwargs={'data_pkl': 'X_processed.pkl', 'scaler_pkl': 'scaler.pkl'}
+    )
+
+    task_model_results = DummyOperator(task_id='get_model_results')
+
+    task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv >> task_get_data_directory >> task_data_schema_and_statastics_validation
     task_data_schema_and_statastics_validation >> task_prepare_email_validation_failed >> task_send_email_validation_failed
-    task_data_schema_and_statastics_validation >> task_dummy_end
+    task_data_schema_and_statastics_validation >> [task_download_scaler, task_save_data_pickle] >> task_batch_data_preprocessing >> task_scale_data >> task_model_results >> task_set_batch_number_to_process

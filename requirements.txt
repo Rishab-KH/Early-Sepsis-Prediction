@@ -8,3 +8,4 @@ joblib
 scikit-learn
 xgboost
 mlflow
+google-cloud-storage

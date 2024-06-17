@@ -39,6 +39,6 @@ def schema_and_stats_validation(ti):
     ti.xcom_push(key='validation_message', value=validation_message)
     if validation_result:
         if "batch" in data_dir: # If we have batch-x in gs:// that mean we are running retrain pipeline
-            return "xyz"
+            return ["save_data_pickle","download_scaler"]
         return 'train_test_split'
     return 'prepare_email_content'

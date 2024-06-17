@@ -139,11 +139,13 @@ with DAG(
     task_scale_train_data = PythonOperator(
         task_id='scale_train_data',
         python_callable=scale_train_data,
+        op_kwargs={'data_pkl': 'X_test_processed.pkl', 'scaler_pkl': 'scaler.pkl'}
     )
 
     task_scale_test_data = PythonOperator(
         task_id='scale_test_data',
         python_callable=scale_test_data,
+        op_kwargs={'data_pkl': 'X_test_processed.pkl', 'scaler_pkl': 'scaler.pkl'}
     )
 
     task_push_scaler = LocalFilesystemToGCSOperator(
