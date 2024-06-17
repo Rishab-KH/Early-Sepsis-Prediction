@@ -108,6 +108,8 @@ def execute_model_and_get_results():
                     'precision': precision,
                     'recall': recall,
                     'f1_score': f1,}
+
+    # SAVE JSON IF REQUIRED, LATER FOR COMPARISONS
     print(metrics)
 
 with DAG(
@@ -198,10 +200,8 @@ with DAG(
         python_callable=execute_model_and_get_results
     )
 
-
-
-    # task_model_results = DummyOperator(task_id='get_model_results')
+    task_track_model_drift = DummyOperator(task_id='track_model_drift')
 
     task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv >> task_get_data_directory >> task_data_schema_and_statastics_validation
     task_data_schema_and_statastics_validation >> task_prepare_email_validation_failed >> task_send_email_validation_failed
-    task_data_schema_and_statastics_validation >> [task_download_scaler, task_save_data_pickle, task_download_latest_model] >> task_batch_data_preprocessing >> task_scale_data >> task_execute_model_and_get_results >> task_set_batch_number_to_process
+    task_data_schema_and_statastics_validation >> [task_download_scaler, task_save_data_pickle, task_download_latest_model] >> task_batch_data_preprocessing >> task_scale_data >> task_execute_model_and_get_results >> task_track_model_drift >> task_set_batch_number_to_process
