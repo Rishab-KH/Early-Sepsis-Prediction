@@ -43,13 +43,13 @@ CREATE OR REPLACE EXTERNAL TABLE sepsis.dataset_temporary (
 )
 OPTIONS (
 format = 'CSV',
-uris = [{{params["psv_uri"]}}],
+uris = [{{params.psv_uri}}],
 skip_leading_rows = 1,
 field_delimiter="|"
 );
 
 EXPORT DATA OPTIONS(
-uri={{params["csv_uri"]}},
+uri={{params.csv_uri}},
 format='CSV',
 overwrite=true,
 header=true,
