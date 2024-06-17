@@ -26,6 +26,9 @@ def set_next_batch_folder():
     last_folder = Variable.get("last_processed_batch", default_var="batch-1")
     folder_number = int(last_folder.strip('batch-'))
     next_folder = f"batch-{folder_number + 1}"
+
+    if folder_number > 3:
+        raise Exception("Out of batches, Terminating")
     Variable.set("last_processed_batch", next_folder)
 
 with DAG(
