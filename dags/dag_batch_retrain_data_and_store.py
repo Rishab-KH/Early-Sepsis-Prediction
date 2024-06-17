@@ -18,14 +18,16 @@ default_args = {
     "retry_delay": timedelta(seconds=10),
 }
 
-def get_next_folder():
+def get_next_batch_folder():
     last_folder = Variable.get("last_processed_batch", default_var="batch-1")
-    
+    return last_folder
+
+def set_next_batch_folder():
+    last_folder = Variable.get("last_processed_batch", default_var="batch-1")
     folder_number = int(last_folder.strip('batch-'))
     next_folder = f"batch-{folder_number + 1}"
     
     Variable.set("last_processed_folder", next_folder)
-    return last_folder
 
 with DAG(
     dag_id = "batch_train_model_data_and_store",
@@ -38,7 +40,7 @@ with DAG(
 ) as dag:
     task_get_batch_number_to_process = PythonOperator(
         task_id = "get_batch_number_to_process",
-        python_callable = get_next_folder
+        python_callable = get_next_batch_folder
     )
 
     task_batch_gcs_psv_to_gcs_csv = BigQueryInsertJobOperator(
@@ -50,7 +52,7 @@ with DAG(
             "useLegacySql": False
         }
     },
-    params = {"psv_uri": "'gs://sepsis-prediction-mlops/data/batch/batch-1/*.psv'", "csv_uri": "'gs://sepsis-prediction-mlops/data/modified_data/batch-1/finalDataset-*.csv'"}
+    params = {"psv_uri": "'gs://sepsis-prediction-mlops/data/batch/{{ ti.xcom_pull(task_ids='get_batch_number_to_process') }}/*.psv'", "csv_uri": "'gs://sepsis-prediction-mlops/data/modified_data/{{ ti.xcom_pull(task_ids='get_batch_number_to_process') }}/finalDataset-*.csv'"}
     )
 
     task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv

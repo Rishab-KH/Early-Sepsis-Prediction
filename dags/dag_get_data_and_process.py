@@ -101,7 +101,8 @@ with DAG(
             "query": "{% include '/merge_data_from_psv_to_csv.sql' %}",
             "useLegacySql": False
         }
-    }
+    },
+    params = {"psv_uri": "'gs://sepsis-prediction-mlops/data/initial/*.psv'", "csv_uri": "'gs://sepsis-prediction-mlops/data/modified_data/finalDataset-*.csv'"}
     )
 
     task_if_schema_generation_required = BranchPythonOperator(
