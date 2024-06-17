@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import time
 from datetime import datetime
-from google.cloud import storage, bigquery
+from google.cloud import storage, bigquery, logging
 from google.cloud.bigquery import SchemaField
 
 load_dotenv()
@@ -19,6 +19,10 @@ bucket_name = os.getenv("BUCKET")
 
 bq_client = bigquery.Client()
 table_id = os.environ['MODEL_MONITORING_TABLE_ID']
+
+client = logging.Client()
+logger = client.logger('Serving_Pipeline')
+logger.log_text(f'Iniatiating Pipeline {datetime.now().isoformat()}', severity='INFO')
 
 def create_logging_table_schema():
     """Build the table schema for the logging table
