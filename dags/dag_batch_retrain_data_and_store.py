@@ -48,11 +48,10 @@ with DAG(
     gcp_conn_id=config.GCP_CONN_ID,
     configuration={
         "query": {
-            "query": "{% include '/merge_data_from_psv_to_csv.sql' %}",
+            "query": "{% include '/merge_data_from_psv_to_csv_batch.sql' %}",
             "useLegacySql": False
         }
-    },
-    params = {"psv_uri": "'gs://sepsis-prediction-mlops/data/batch/{{ ti.xcom_pull(task_ids='get_batch_number_to_process') }}/*.psv'", "csv_uri": "'gs://sepsis-prediction-mlops/data/modified_data/{{ ti.xcom_pull(task_ids='get_batch_number_to_process') }}/finalDataset-*.csv'"}
+    }
     )
 
     task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv

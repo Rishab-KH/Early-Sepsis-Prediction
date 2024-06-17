@@ -43,13 +43,13 @@ CREATE OR REPLACE EXTERNAL TABLE sepsis.dataset_temporary (
 )
 OPTIONS (
 format = 'CSV',
-uris = ['gs://sepsis-prediction-mlops/data/initial/*.psv'],
+uris = ["gs://sepsis-prediction-mlops/data/batch/{{task_instance.xcom_pull(task_ids='get_batch_number_to_process")}}/*.psv'],
 skip_leading_rows = 1,
 field_delimiter="|"
 );
 
 EXPORT DATA OPTIONS(
-uri='gs://sepsis-prediction-mlops/data/modified_data/finalDataset-*.csv',
+uri="gs://sepsis-prediction-mlops/data/modified_data/{{task_instance.xcom_pull(task_ids='get_batch_number_to_process')}}/finalDataset-*.csv",
 format='CSV',
 overwrite=true,
 header=true,
