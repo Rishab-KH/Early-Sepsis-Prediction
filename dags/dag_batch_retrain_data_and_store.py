@@ -54,4 +54,9 @@ with DAG(
     }
     )
 
-    task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv
+    task_set_batch_number_to_process = PythonOperator(
+        task_id = "get_batch_number_to_process",
+        python_callable = set_next_batch_folder
+    )
+
+    task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv >> task_set_batch_number_to_process
