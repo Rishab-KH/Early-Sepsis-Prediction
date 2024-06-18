@@ -20,6 +20,7 @@ from dags.utils.helper import prepare_email_content, save_data_to_pickle, load_d
 from dags.utils.schema_stats_utils import schema_and_stats_validation
 from dags.utils.data_preprocessing import data_preprocess_pipeline 
 from dags.utils.data_scale_utils import scale_test_data
+from dags.include.factory_data_processing import data_processing_task_group
 
 default_args = {
     "owner": 'airflow',
@@ -112,30 +113,34 @@ def execute_model_and_get_results():
     # SAVE JSON IF REQUIRED, LATER FOR COMPARISONS
     print(metrics)
 
+def helper_merge_df_and_push_to_gcs(bucket, source_data_dir, new_batch_data_dir):
+    df = pd.read_csv(source_data_dir, sep=",")
+    batch_df = pd.read_csv(new_batch_data_dir, sep=",")
+
+    print(df.shape)
+    print(batch_df.shape)
+
+    combined_df = pd.concat([df, batch_df], ignore_index=True)
+    print(combined_df.shape)
+
+    client = storage.Client().create_anonymous_client()
+    bucket = client.get_bucket(config.bucket)
+        
+    bucket.blob('data/modified_data/processed_batch/combined_data.csv').upload_from_string(combined_df.to_csv(index=False), 'text/csv')
+
 def merge_batch_and_existing_data(ti):
-    # Check if batch was ever processed
     storage_client = storage.Client.create_anonymous_client()
     bucket = storage_client.bucket(config.bucket)
     current_batch = ti.xcom_pull('get_batch_number')
     if current_batch == "batch-1":
         print("Data was never batched before, combining initial data and batch-1")
-        # Read the never batched data i.e. we are processing batch-1
-        df = pd.read_csv(config.DATA_DIR, sep=",")
-        batch_df = pd.read_csv(ti.xcom_pull('get_data_location'), sep=",") # batch-1 data csv
-
-        print(df.shape)
-        print(batch_df.shape)
-
-        combined_df = pd.concat([df, batch_df], ignore_index=True)
-        print(combined_df.shape)
-
-        client = storage.Client().create_anonymous_client()
-        bucket = client.get_bucket(config.bucket)
-            
-        bucket.blob('data/modified_data/processed_batch/combined_data.csv').upload_from_string(combined_df.to_csv(index=False), 'text/csv')
+        source_data_dir = config.DATA_DIR
     else:
-        pass
+        print("Data was previously batched, using existing combined df")
+        source_data_dir = f"{config.gsutil_URL}/data/modified_data/processed_batch/combined_data.csv"
 
+    new_batch_data_dir = ti.xcom_pull('get_data_location')
+    helper_merge_df_and_push_to_gcs(bucket, source_data_dir, new_batch_data_dir)
 
 with DAG(
     dag_id = "batch_train_model_data_and_store",
@@ -234,4 +239,4 @@ with DAG(
 
     task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv >> task_get_data_directory >> task_data_schema_and_statastics_validation
     task_data_schema_and_statastics_validation >> task_prepare_email_validation_failed >> task_send_email_validation_failed
-    task_data_schema_and_statastics_validation >> [task_download_scaler, task_save_data_pickle, task_download_latest_model] >> task_batch_data_preprocessing >> task_scale_data >> task_execute_model_and_get_results >> task_track_model_drift >> task_merge_batch_and_existing_data >> task_set_batch_number_to_process
+    task_data_schema_and_statastics_validation >> [task_download_scaler, task_save_data_pickle, task_download_latest_model] >> task_batch_data_preprocessing >> task_scale_data >> task_execute_model_and_get_results >> task_track_model_drift >> task_merge_batch_and_existing_data >> data_processing_task_group(dag, f"{config.gsutil_URL}/data/modified_data/processed_batch/combined_data.csv") >> task_set_batch_number_to_process

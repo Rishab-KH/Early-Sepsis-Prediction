@@ -40,7 +40,7 @@ def data_processing_task_group(dag, data_path):
         task_scale_train_data = PythonOperator(
             task_id='scale_train_data',
             python_callable=scale_train_data,
-            op_kwargs={'data_pkl': 'X_test_processed.pkl', 'scaler_pkl': 'scaler.pkl'}
+            op_kwargs={'data_pkl': 'X_train_processed.pkl', 'scaler_pkl': 'scaler.pkl','output_pkl':'X_train_processed_scaled.pkl'}
         )
 
         task_scale_test_data = PythonOperator(

@@ -10,7 +10,7 @@ from dags.utils.helper import load_data_from_pickle, save_data_to_pickle
 
 logger = setup_logging(config.PROJECT_ROOT, "data_scale_utils.py")
 
-def scale_train_data(data_pkl, scaler_pkl):
+def scale_train_data(data_pkl, scaler_pkl, output_pkl):
     """
     Load, scale, and save the training data and scaler.
 
@@ -25,7 +25,7 @@ def scale_train_data(data_pkl, scaler_pkl):
         columns_to_scale = ['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine', 'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets']
         X_train_processed_df[columns_to_scale] = scaler.fit_transform(X_train_processed_df[columns_to_scale])
         
-        save_data_to_pickle(X_train_processed_df, 'X_train_processed_scaled.pkl')
+        save_data_to_pickle(X_train_processed_df, output_pkl)
         save_data_to_pickle(scaler, scaler_pkl)
         logger.info("Training data scaled and saved successfully.")
         
