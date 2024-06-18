@@ -5,10 +5,10 @@ scikit_learn==1.1.2
 setuptools==59.8.0
 gcsfs>=2021.4.0
 
-mlflow
-xgboost
-joblib
 python-dotenv
+xgboost
+Flask
+joblib
 
 google-cloud-logging
 google-auth
