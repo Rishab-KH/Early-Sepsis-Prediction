@@ -115,7 +115,12 @@ def validate_schema(df, schema):
             err_msg = f"Missing column: {column}\n"
             logger.error(err_msg)
             return False, err_msg
-        if str(df[column].dtype) != dtype:
+        if column == "Age":
+            if not (str(df["Age"].dtype) != "float64" or str(df["Age"].dtype) != "int64"):
+                err_msg = f"Invalid type for column Age. Expected int64 or float64, got something else"
+                logger.error(err_msg)
+                return False, err_msg
+        elif str(df[column].dtype) != dtype:
             err_msg = f"Invalid type for column {column}. Expected {dtype}, got {df[column].dtype}"
             logger.error(err_msg)
             return False, err_msg

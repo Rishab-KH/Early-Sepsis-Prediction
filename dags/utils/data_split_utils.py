@@ -9,12 +9,11 @@ from dags.utils.helper import save_data_to_pickle
 
 # # Logger setup for data splitting
 logger = setup_logging(config.PROJECT_ROOT, "data_split.py")
-DATA_DIR = config.DATA_DIR
 
 
-def train_test_split():
+def train_test_split(ti, data_path):
     try:
-        df = pd.read_csv(DATA_DIR, sep=",")
+        df = pd.read_csv(data_path, sep=",")
         train_inds, test_inds = next(GroupShuffleSplit(test_size=0.25, n_splits=2,).split(df, groups=df['Patient_ID']))
         df_train = df.iloc[train_inds] 
         df_test = df.iloc[test_inds]

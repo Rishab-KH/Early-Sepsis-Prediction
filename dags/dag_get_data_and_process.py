@@ -14,12 +14,13 @@ sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
 import dags.utils.config as config
-from dags.utils.helper import clean_pickle_files
+from dags.utils.helper import clean_pickle_files,  prepare_email_content
 from dags.utils.data_preprocessing import data_preprocess_pipeline 
 from dags.utils.data_split_utils import train_test_split
 from dags.utils.data_scale_utils import scale_train_data, scale_test_data
 from dags.utils.log_config import setup_logging
 from dags.utils.schema_stats_utils import schema_stats_gen, schema_and_stats_validation
+from dags.include.factory_data_processing import data_processing_task_group
 
 
 DATA_DIR = config.DATA_DIR
@@ -54,34 +55,6 @@ def branch_logic_schema_generation():
         return 'if_validate_data_schema_and_stats'
     else:
         return 'generate_schema_and_stats'
-
-def prepare_email_content(**context):
-    ti = context['ti']
-    validation_message = ti.xcom_pull(task_ids='if_validate_data_schema_and_stats', key='validation_message')
-    
-    dag_run = context['dag_run']
-    dag_id = dag_run.dag_id
-    execution_date = dag_run.execution_date.isoformat()
-    task_id = ti.task_id
-    owner = ti.task.dag.owner
-    
-    # Constructing the HTML content for the email.
-    html_content = f"""
-    <h3>Validation of Schema/Stats Failed</h3>
-    <p>Find the error below:</p>
-    <p>{validation_message}</p>
-    <br>
-    <strong>DAG Details:</strong>
-    <ul>
-        <li>DAG ID: {dag_id}</li>
-        <li>Task ID: {task_id}</li>
-        <li>Execution Date: {str(execution_date)}</li>
-        <li>Owner: {owner}</li>
-    </ul>
-    <p>This is an automated message from Airflow. Please do not reply directly to this email.</p>
-    """
-    return html_content
-
 
 with DAG(
     dag_id = "train_data_preprocess_with_gcp",
@@ -137,82 +110,8 @@ with DAG(
     task_send_email_validation_failed = EmailOperator(
         task_id='email_validation_failed',
         to='derilraju@gmail.com',
-        subject='Airflow Alert',
+        subject='Airflow Alert - Initial Train Pipeline',
         html_content="{{ task_instance.xcom_pull(task_ids='prepare_email_content') }}"
-    )
-
-    task_train_test_split = PythonOperator(
-        task_id='train_test_split',
-        python_callable=train_test_split,
-        trigger_rule='none_failed'
-    )
-
-    task_X_train_data_preprocessing = PythonOperator(
-        task_id='preprocess_X_train',
-        python_callable=data_preprocess_pipeline,
-        op_kwargs={'data_input': 'X_train.pkl', 'target_input': 'y_train.pkl', 'data_output':'X_train_processed.pkl'}
-    )
-
-    task_X_test_data_preprocessing = PythonOperator(
-        task_id='preprocess_X_test',
-        python_callable=data_preprocess_pipeline,
-        op_kwargs={'data_input': 'X_test.pkl', 'target_input': 'y_test.pkl', 'data_output':'X_test_processed.pkl'}
-    )
-
-    task_scale_train_data = PythonOperator(
-        task_id='scale_train_data',
-        python_callable=scale_train_data,
-    )
-
-    task_scale_test_data = PythonOperator(
-        task_id='scale_test_data',
-        python_callable=scale_test_data,
-    )
-
-    task_push_scaler = LocalFilesystemToGCSOperator(
-       task_id="push_scaler_to_gcs",
-       gcp_conn_id=config.GCP_CONN_ID,
-       src="scaler.pkl",
-       dst="artifacts/scaler.pkl",
-       bucket=BUCKET
-    )
-
-    task_push_X_train_data = LocalFilesystemToGCSOperator(
-       task_id="push_X_train_data_to_gcs",
-       gcp_conn_id=config.GCP_CONN_ID,
-       src="X_train_processed_scaled.pkl",
-       dst="data/processed_data/X_train.pkl",
-       bucket=BUCKET
-    )
-
-    task_push_X_test_data = LocalFilesystemToGCSOperator(
-       task_id="push_X_test_data_to_gcs",
-       gcp_conn_id=config.GCP_CONN_ID,
-       src="X_test_processed_scaled.pkl",
-       dst="data/processed_data/X_test.pkl",
-       bucket=BUCKET
-    )
-
-    task_push_y_train_data = LocalFilesystemToGCSOperator(
-       task_id="push_y_train_data_to_gcs",
-       gcp_conn_id=config.GCP_CONN_ID,
-       src="y_train.pkl",
-       dst="data/processed_data/y_train.pkl",
-       bucket=BUCKET
-    )
-
-    task_push_y_test_data = LocalFilesystemToGCSOperator(
-       task_id="push_y_test_data_to_gcs",
-       gcp_conn_id=config.GCP_CONN_ID,
-       src="y_test.pkl",
-       dst="data/processed_data/y_test.pkl",
-       bucket=BUCKET
-    )
-
-    task_cleanup_files = PythonOperator(
-        task_id="clean_pickle_files",
-        python_callable=clean_pickle_files,
-        op_kwargs={"directory": os.getcwd()}
     )
 
     task_trigger_modelling_dag = TriggerDagRunOperator(
@@ -225,4 +124,5 @@ with DAG(
     task_if_schema_generation_required >> task_schema_and_statastics_generation >> task_push_generated_schema_data >> task_data_schema_and_statastics_validation
 
     task_data_schema_and_statastics_validation >> task_prepare_email_validation_failed >> task_send_email_validation_failed
-    task_data_schema_and_statastics_validation >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
+    # task_data_schema_and_statastics_validation >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
+    task_data_schema_and_statastics_validation >> data_processing_task_group(dag, config.DATA_DIR) >> task_trigger_modelling_dag
