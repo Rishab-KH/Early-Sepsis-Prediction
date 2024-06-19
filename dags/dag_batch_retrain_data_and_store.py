@@ -95,7 +95,7 @@ def execute_model_and_get_results():
     X = load_data_from_pickle("X_processed_scaled.pkl")
     y_val = load_data_from_pickle("y.pkl")
     model = load_data_from_pickle("model.pkl")
-
+    print(y_val.value_counts())
     y_pred = model.predict(X)
     
     accuracy = accuracy_score(y_val, y_pred)
