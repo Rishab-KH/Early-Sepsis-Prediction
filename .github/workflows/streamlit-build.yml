@@ -1,0 +1,44 @@
+name: Deploy Streamlit
+
+on:
+  push:
+    paths:
+    - 'src/streamlit/**'
+    - '.github/workflows/streamlit-build.yaml'
+    branches:
+    - 'main'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: code checkout
+      uses: actions/checkout@v2
+
+    - name: install the gcloud cli
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        project_id: ${{ secrets.GOOGLE_PROJECT }}
+        service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+        export_default_credentials: true
+
+    - name: build and push the docker image
+      env:
+        GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
+      run: |
+        gcloud auth configure-docker us-central1-docker.pkg.dev
+        docker build -t us-central1-docker.pkg.dev/$GOOGLE_PROJECT/sepsis-mlops-repo/streamlit_pipeline:latest src/streamlit/
+        docker push us-central1-docker.pkg.dev/$GOOGLE_PROJECT/sepsis-mlops-repo/streamlit_pipeline:latest
+
+    - name: Deploy Serve on Google Cloud Run
+      env:
+          GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
+      run: |
+        gcloud run deploy sepsis-streamlit \
+          --image us-central1-docker.pkg.dev/$GOOGLE_PROJECT/sepsis-mlops-repo/streamlit_pipeline:latest \
+          --region us-central1 \
+          --memory 512Mi \
+          --allow-unauthenticated \
+          --port 8501 \
+          --tag prod
