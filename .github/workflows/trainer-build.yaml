@@ -5,8 +5,8 @@ on:
     paths:
     - 'src/trainer/**'
     - '.github/workflows/trainer-build.yaml'
-    # branches:
-    # - 'main'
+    branches:
+    - 'main'
 
 jobs:
   deploy:
