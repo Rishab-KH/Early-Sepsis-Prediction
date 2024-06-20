@@ -6,7 +6,7 @@ on:
     - 'src/trainer/**'
     - '.github/workflows/trainer-build.yaml'
     branches:
-    - 'training_and_monitoring_pipeline'
+    - 'main'
 
 jobs:
   deploy:
