@@ -11,7 +11,7 @@ COPY requirements.txt /root/requirements.txt
 # 4. Install dependencies
 RUN pip install -r /root/requirements.txt
 
-ENV TRACKING_URI=http://mlflow-cloud-run-3wcd2ryf5q-uc.a.run.app
+ENV TRACKING_URI=https://mlflow-cloud-run-3wcd2ryf5q-uc.a.run.app
 
 # 5. Sets up the entry point to invoke the trainer.
 ENTRYPOINT ["python", "train.py"]

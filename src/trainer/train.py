@@ -109,7 +109,8 @@ def train_models(X_train, X_val, y_train, y_val):
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         model_path = f"model_{timestamp}"
         
-        with mlflow.start_run(run_name=hyperparameter_set[i]["model_name"]):
+        with mlflow.start_run(run_name=hyperparams[i]["model_name"]):
+            
             grid_search = GridSearchCV(estimator=hyperparams['model'], param_grid=hyperparams['params'], cv=5, scoring='f1')
             start_time = time.time()
             grid_search.fit(X_train, y_train)
