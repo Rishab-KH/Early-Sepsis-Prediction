@@ -117,15 +117,10 @@ def helper_merge_df_and_push_to_gcs(bucket, source_data_dir, new_batch_data_dir)
     df = pd.read_csv(source_data_dir, sep=",")
     batch_df = pd.read_csv(new_batch_data_dir, sep=",")
 
-    print(df.shape)
-    print(batch_df.shape)
-
     combined_df = pd.concat([df, batch_df], ignore_index=True)
-    print(combined_df.shape)
 
     client = storage.Client().create_anonymous_client()
     bucket = client.get_bucket(config.bucket)
-        
     bucket.blob('data/modified_data/processed_batch/combined_data.csv').upload_from_string(combined_df.to_csv(index=False), 'text/csv')
 
 def merge_batch_and_existing_data(ti):
@@ -138,6 +133,12 @@ def merge_batch_and_existing_data(ti):
     else:
         print("Data was previously batched, using existing combined df")
         source_data_dir = f"{config.gsutil_URL}/data/modified_data/processed_batch/combined_data.csv"
+
+        print("Saving a backup file for revert if future tasks error out")
+        source_blob = bucket.get_blob('data/modified_data/processed_batch/combined_data.csv')
+        destination_blob_name = 'data/modified_data/processed_batch/backup/combined_data.csv'
+        blob_copy = bucket.copy_blob(source_blob, bucket, new_name=destination_blob_name)
+        print(f"Backup created from folder data/modified_data/processed_batch/combined_data.csv to {destination_blob_name} within bucket {bucket}")
 
     new_batch_data_dir = ti.xcom_pull('get_data_location')
     helper_merge_df_and_push_to_gcs(bucket, source_data_dir, new_batch_data_dir)
@@ -165,11 +166,6 @@ with DAG(
             "useLegacySql": False
         }
     }
-    )
-
-    task_set_batch_number_to_process = PythonOperator(
-        task_id = "set_batch_number",
-        python_callable = set_next_batch_folder
     )
 
     task_get_data_directory = PythonOperator(
@@ -237,6 +233,11 @@ with DAG(
         python_callable=merge_batch_and_existing_data
     )
 
+    task_set_batch_number_to_process = PythonOperator(
+        task_id = "set_batch_number",
+        python_callable = set_next_batch_folder
+    )
+
     task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv >> task_get_data_directory >> task_data_schema_and_statastics_validation
     task_data_schema_and_statastics_validation >> task_prepare_email_validation_failed >> task_send_email_validation_failed
-    task_data_schema_and_statastics_validation >> [task_download_scaler, task_save_data_pickle, task_download_latest_model] >> task_batch_data_preprocessing >> task_scale_data >> task_execute_model_and_get_results >> task_track_model_drift >> task_merge_batch_and_existing_data >> data_processing_task_group(dag, f"{config.gsutil_URL}/data/modified_data/processed_batch/combined_data.csv") >> task_set_batch_number_to_process
+    task_data_schema_and_statastics_validation >> [task_download_scaler, task_save_data_pickle, task_download_latest_model] >> task_batch_data_preprocessing >> task_scale_data >> task_execute_model_and_get_results >> task_track_model_drift >> task_merge_batch_and_existing_data >> data_processing_task_group(dag, f"{config.gsutil_URL}/data/modified_data/processed_batch/combined_data.csv", train_type='batch_train') >> task_set_batch_number_to_process

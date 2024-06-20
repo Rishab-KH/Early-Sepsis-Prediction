@@ -125,4 +125,4 @@ with DAG(
 
     task_data_schema_and_statastics_validation >> task_prepare_email_validation_failed >> task_send_email_validation_failed
     # task_data_schema_and_statastics_validation >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
-    task_data_schema_and_statastics_validation >> data_processing_task_group(dag, config.DATA_DIR) >> task_trigger_modelling_dag
+    task_data_schema_and_statastics_validation >> data_processing_task_group(dag, config.DATA_DIR, train_type="initial_train") >> task_trigger_modelling_dag
