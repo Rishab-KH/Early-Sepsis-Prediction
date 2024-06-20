@@ -16,7 +16,6 @@ from dags.utils.helper import clean_pickle_files, revert_merge_on_task_fail
 from dags.utils.data_preprocessing import data_preprocess_pipeline 
 from dags.utils.data_split_utils import train_test_split
 from dags.utils.data_scale_utils import scale_train_data, scale_test_data
-# from dags.dag_batch_retrain_data_and_store import revert_merge_on_task_fail
 
 def data_processing_task_group(dag, data_path, train_type):
     with TaskGroup(group_id='data_processing_and_saving', dag=dag) as paths:

@@ -14,10 +14,7 @@ sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
 import dags.utils.config as config
-from dags.utils.helper import clean_pickle_files,  prepare_email_content
-from dags.utils.data_preprocessing import data_preprocess_pipeline 
-from dags.utils.data_split_utils import train_test_split
-from dags.utils.data_scale_utils import scale_train_data, scale_test_data
+from dags.utils.helper import prepare_email_content
 from dags.utils.log_config import setup_logging
 from dags.utils.schema_stats_utils import schema_stats_gen, schema_and_stats_validation
 from dags.include.factory_data_processing import data_processing_task_group
@@ -124,5 +121,4 @@ with DAG(
     task_if_schema_generation_required >> task_schema_and_statastics_generation >> task_push_generated_schema_data >> task_data_schema_and_statastics_validation
 
     task_data_schema_and_statastics_validation >> task_prepare_email_validation_failed >> task_send_email_validation_failed
-    # task_data_schema_and_statastics_validation >> task_train_test_split >> [task_X_train_data_preprocessing, task_X_test_data_preprocessing] >> task_scale_train_data >> task_scale_test_data >> [task_push_scaler, task_push_X_train_data, task_push_X_test_data, task_push_y_train_data, task_push_y_test_data] >> task_cleanup_files >> task_trigger_modelling_dag
     task_data_schema_and_statastics_validation >> data_processing_task_group(dag, config.DATA_DIR, train_type="initial_train") >> task_trigger_modelling_dag
