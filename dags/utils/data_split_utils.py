@@ -1,6 +1,5 @@
 # Import libraries
 from sklearn.model_selection import GroupShuffleSplit
-from airflow.exceptions import AirflowFailException
 import pandas as pd
 import sys
 import os
@@ -18,7 +17,6 @@ logger = setup_logging(config.PROJECT_ROOT, "data_split.py")
 
 def train_test_split(ti, data_path):
     try:
-        raise AirflowFailException("Our api key is bad!")
         df = pd.read_csv(data_path, sep=",")
         train_inds, test_inds = next(GroupShuffleSplit(test_size=0.25, n_splits=2,).split(df, groups=df['Patient_ID']))
         df_train = df.iloc[train_inds] 

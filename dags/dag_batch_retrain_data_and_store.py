@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import os
 import pandas as pd
 import re
+import json
 import sys
 from airflow.models import Variable
 from airflow.operators.python import PythonOperator, BranchPythonOperator
@@ -11,6 +12,7 @@ from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobO
 from airflow.operators.email import EmailOperator
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, confusion_matrix, classification_report
 from google.cloud import storage
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
@@ -91,6 +93,13 @@ def download_latest_model():
     blob.download_to_filename("model.pkl")
     print("Downloaded Model")
 
+    metrics_dir = f'models/{latest_model_folder}/metrics.json'
+    print("Metrics Directory: ", metrics_dir)
+    blob = bucket.blob(metrics_dir)
+    str_json = blob.download_as_text()
+    metrics = json.loads(str_json)
+    return metrics
+
 def execute_model_and_get_results():
     X = load_data_from_pickle("X_processed_scaled.pkl")
     y_val = load_data_from_pickle("y.pkl")
@@ -110,8 +119,24 @@ def execute_model_and_get_results():
                     'recall': recall,
                     'f1_score': f1,}
 
-    # SAVE JSON IF REQUIRED, LATER FOR COMPARISONS
-    print(metrics)
+    return metrics # pull later using xcom
+
+def track_model_drift(ti):
+    batch_matrics = ti.xcom_pull('execute_model_and_get_results')
+    current_matrics = ti.xcom_pull('download_latest_model')
+    print(batch_matrics)
+    print(current_matrics)
+    
+    perc_change_in_recall = 100*(current_matrics['recall'] - batch_matrics['recall']) / current_matrics['recall']
+
+    if perc_change_in_recall > 5:
+        print(f"Warning: Change in recall: {perc_change_in_recall}% is more than 5%, model might be drifting")
+    if perc_change_in_recall > 5:
+        print(f"Critical: Heavy change in recall: {perc_change_in_recall}% is more than 10%, retraining model with new batch data")
+        return 'trigger_model_retrain'
+    return 'set_batch_number'
+
+
 
 def helper_merge_df_and_push_to_gcs(bucket, source_data_dir, new_batch_data_dir):
     df = pd.read_csv(source_data_dir, sep=",")
@@ -226,18 +251,30 @@ with DAG(
         python_callable=execute_model_and_get_results
     )
 
-    task_track_model_drift = DummyOperator(task_id='track_model_drift')
-
     task_merge_batch_and_existing_data = PythonOperator(
         task_id='merge_batch_and_existing_data',
         python_callable=merge_batch_and_existing_data
     )
 
+    task_track_model_drift = BranchPythonOperator(
+        task_id = "track_model_drift",
+        python_callable = track_model_drift,
+        trigger_rule = 'none_failed'
+    )
+
     task_set_batch_number_to_process = PythonOperator(
         task_id = "set_batch_number",
-        python_callable = set_next_batch_folder
+        python_callable = set_next_batch_folder,
+        trigger_rule = 'none_failed'
+    )
+
+    task_trigger_modelling_dag = TriggerDagRunOperator(
+        task_id="trigger_model_retrain",
+        trigger_dag_id="model_data_and_store",
+        trigger_rule = 'none_failed'
     )
 
     task_get_batch_number_to_process >> task_batch_gcs_psv_to_gcs_csv >> task_get_data_directory >> task_data_schema_and_statastics_validation
     task_data_schema_and_statastics_validation >> task_prepare_email_validation_failed >> task_send_email_validation_failed
-    task_data_schema_and_statastics_validation >> [task_download_scaler, task_save_data_pickle, task_download_latest_model] >> task_batch_data_preprocessing >> task_scale_data >> task_execute_model_and_get_results >> task_track_model_drift >> task_merge_batch_and_existing_data >> data_processing_task_group(dag, f"{config.gsutil_URL}/data/modified_data/processed_batch/combined_data.csv", train_type='batch_train') >> task_set_batch_number_to_process
+    task_data_schema_and_statastics_validation >> [task_download_scaler, task_save_data_pickle, task_download_latest_model] >> task_batch_data_preprocessing >> task_scale_data >> task_execute_model_and_get_results >> task_merge_batch_and_existing_data >> data_processing_task_group(dag, f"{config.gsutil_URL}/data/modified_data/processed_batch/combined_data.csv", train_type='batch_train') >> task_track_model_drift >> task_set_batch_number_to_process
+    task_track_model_drift >> task_trigger_modelling_dag >> task_set_batch_number_to_process
