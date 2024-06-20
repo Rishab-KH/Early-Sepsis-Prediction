@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY streamlit.py /app/streamlit.py
+COPY streamlit.py /app/streamlit_app.py
 COPY requirements.txt /app/requirements.txt
 
 RUN pip3 install -r /app/requirements.txt
