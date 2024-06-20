@@ -131,7 +131,7 @@ def track_model_drift(ti):
 
     if perc_change_in_recall > 5:
         print(f"Warning: Change in recall: {perc_change_in_recall}% is more than 5%, model might be drifting")
-    if perc_change_in_recall > 5:
+    if perc_change_in_recall > 10:
         print(f"Critical: Heavy change in recall: {perc_change_in_recall}% is more than 10%, retraining model with new batch data")
         return 'trigger_model_retrain'
     return 'set_batch_number'
