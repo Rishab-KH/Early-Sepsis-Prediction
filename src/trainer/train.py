@@ -98,7 +98,7 @@ def pre_process_split_data(data):
 def train_models(X_train, X_val, y_train, y_val):
 
     hyperparameter_set = [
-        # {'model': RandomForestClassifier(), 'model_name': 'Random_Forest_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [None, 10, 20], 'min_samples_split': [2, 5, 10]}},
+        {'model': RandomForestClassifier(), 'model_name': 'Random_Forest_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [None, 10, 20], 'min_samples_split': [2, 5, 10]}},
         {'model': XGBClassifier(),  'model_name': 'XGB_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [3, 6, 9], 'learning_rate': [0.01, 0.1, 0.2]}},
         {'model': LogisticRegression(max_iter=200),  'model_name': 'Logistic_Regression', 'params': {'C': [0.1, 1, 10], 'solver': ['liblinear', 'lbfgs']}}
         ]
@@ -110,7 +110,7 @@ def train_models(X_train, X_val, y_train, y_val):
         model_path = f"model_{timestamp}"
         
         with mlflow.start_run(run_name=hyperparams[i]["model_name"]):
-            
+
             grid_search = GridSearchCV(estimator=hyperparams['model'], param_grid=hyperparams['params'], cv=5, scoring='f1')
             start_time = time.time()
             grid_search.fit(X_train, y_train)
@@ -159,7 +159,7 @@ def evaluate_best_model(best_model, best_model_name, X_val, y_val):
     conf_matrix = confusion_matrix(y_val, y_pred)
     class_report = classification_report(y_val, y_pred)
     # Log metrics and parameters
-    with mlflow.start_run(run_name="best model"):
+    with mlflow.start_run(run_name="best_model"):
         mlflow.log_param('model_name', best_model_name)
         mlflow.log_params(best_model['params'])
 
