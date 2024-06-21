@@ -95,6 +95,11 @@ with DAG(
        bucket=BUCKET
     )
 
+    task_get_data_directory = PythonOperator(
+        task_id = "get_data_location",
+        python_callable=lambda: config.DATA_DIR
+    )
+
     task_data_schema_and_statastics_validation = BranchPythonOperator(
         task_id='if_validate_data_schema_and_stats',
         python_callable=schema_and_stats_validation,
@@ -119,7 +124,7 @@ with DAG(
         trigger_dag_id="model_data_and_store",
     )
 
-    task_gcs_psv_to_gcs_csv >> task_if_schema_generation_required
+    task_gcs_psv_to_gcs_csv >> task_get_data_directory >> task_if_schema_generation_required
     task_if_schema_generation_required >> task_data_schema_and_statastics_validation
     task_if_schema_generation_required >> task_schema_and_statastics_generation >> task_push_generated_schema_data >> task_data_schema_and_statastics_validation
 
