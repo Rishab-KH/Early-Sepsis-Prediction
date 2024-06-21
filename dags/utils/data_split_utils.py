@@ -1,6 +1,10 @@
 # Import libraries
 from sklearn.model_selection import GroupShuffleSplit
 import pandas as pd
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
 import dags.utils.config as config

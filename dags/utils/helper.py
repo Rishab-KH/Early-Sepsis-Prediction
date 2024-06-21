@@ -2,6 +2,7 @@
 import pickle
 import os
 import sys
+from google.cloud import storage
 
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
@@ -10,6 +11,16 @@ import dags.utils.config as config
 from dags.utils.log_config import setup_logging
 
 logger = setup_logging(config.PROJECT_ROOT, "helper.py")
+
+def revert_merge_on_task_fail():
+    storage_client = storage.Client.create_anonymous_client()
+    bucket = storage_client.bucket(config.bucket)
+
+    print("Reverting to backup file since a task errored out")
+    source_blob = bucket.get_blob('data/modified_data/processed_batch/backup/combined_data.csv')
+    destination_blob_name = 'data/modified_data/processed_batch/combined_data.csv'
+    blob_copy = bucket.copy_blob(source_blob, bucket, new_name=destination_blob_name)
+    print(f"Reverted to backup file from folder data/modified_data/processed_batch/combined_data.csv to {destination_blob_name} within bucket {bucket}")
 
 def load_data_from_pickle(obj_name):
     '''
