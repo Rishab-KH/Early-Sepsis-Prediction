@@ -107,10 +107,10 @@ def train_models(X_train, X_val, y_train, y_val):
 
     for i, hyperparams in enumerate(hyperparameter_set):
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        model_path = f"model_{timestamp}"
+        # model_path = f"model_{timestamp}"
         
-        with mlflow.start_run(run_name=hyperparams[i]["model_name"]):
-            
+        with mlflow.start_run(run_name=hyperparams["model_name"]):
+
             grid_search = GridSearchCV(estimator=hyperparams['model'], param_grid=hyperparams['params'], cv=5, scoring='f1')
             start_time = time.time()
             grid_search.fit(X_train, y_train)
@@ -122,16 +122,22 @@ def train_models(X_train, X_val, y_train, y_val):
             f1_val = f1_score(y_val, y_pred_val, average='weighted')
             training_time = end_time - start_time
             
+            mlflow.log_params(best_params)
+            mlflow.log_metric("f1_score", f1_val)
+            mlflow.log_metric("training_time", training_time)
+            
+            best_candidates[hyperparams['model_name']] = {
+                'model': best_model,
+                'params': best_params,
+                'f1_score': f1_val,
+                'training_time': training_time
+            }
+            
+            # Assuming logger is already defined and set up
             logger.log_text(f"Best parameters for {hyperparams['model_name']}: {best_params}", severity='INFO')
             logger.log_text(f"Best score for {hyperparams['model_name']}: {grid_search.best_score_}", severity='INFO')
-
-            best_candidates[hyperparams['model_name']] = {
-                                        'model': best_model,
-                                        'params': best_params,
-                                        'f1_score': f1_val,
-                                        'training_time': training_time
-                                        }
             logger.log_text(f"{hyperparams['model_name']} - Best Params: {best_params}, F1 Score: {f1_val}", severity='INFO')
+
     
     return best_candidates
         
@@ -159,7 +165,7 @@ def evaluate_best_model(best_model, best_model_name, X_val, y_val):
     conf_matrix = confusion_matrix(y_val, y_pred)
     class_report = classification_report(y_val, y_pred)
     # Log metrics and parameters
-    with mlflow.start_run(run_name="best model"):
+    with mlflow.start_run(run_name="best_model"):
         mlflow.log_param('model_name', best_model_name)
         mlflow.log_params(best_model['params'])
 
