@@ -98,7 +98,7 @@ def pre_process_split_data(data):
 def train_models(X_train, X_val, y_train, y_val):
 
     hyperparameter_set = [
-        {'model': RandomForestClassifier(), 'model_name': 'Random_Forest_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [None, 10, 20], 'min_samples_split': [2, 5, 10]}},
+        # {'model': RandomForestClassifier(), 'model_name': 'Random_Forest_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [None, 10, 20], 'min_samples_split': [2, 5, 10]}},
         {'model': XGBClassifier(),  'model_name': 'XGB_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [3, 6, 9], 'learning_rate': [0.01, 0.1, 0.2]}},
         {'model': LogisticRegression(max_iter=200),  'model_name': 'Logistic_Regression', 'params': {'C': [0.1, 1, 10], 'solver': ['liblinear', 'lbfgs']}}
         ]
@@ -107,7 +107,7 @@ def train_models(X_train, X_val, y_train, y_val):
 
     for i, hyperparams in enumerate(hyperparameter_set):
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        model_path = f"model_{timestamp}"
+        # model_path = f"model_{timestamp}"
         
         with mlflow.start_run(run_name=hyperparams[i]["model_name"]):
 
@@ -122,16 +122,22 @@ def train_models(X_train, X_val, y_train, y_val):
             f1_val = f1_score(y_val, y_pred_val, average='weighted')
             training_time = end_time - start_time
             
+            mlflow.log_params(best_params)
+            mlflow.log_metric("f1_score", f1_val)
+            mlflow.log_metric("training_time", training_time)
+            
+            best_candidates[hyperparams['model_name']] = {
+                'model': best_model,
+                'params': best_params,
+                'f1_score': f1_val,
+                'training_time': training_time
+            }
+            
+            # Assuming logger is already defined and set up
             logger.log_text(f"Best parameters for {hyperparams['model_name']}: {best_params}", severity='INFO')
             logger.log_text(f"Best score for {hyperparams['model_name']}: {grid_search.best_score_}", severity='INFO')
-
-            best_candidates[hyperparams['model_name']] = {
-                                        'model': best_model,
-                                        'params': best_params,
-                                        'f1_score': f1_val,
-                                        'training_time': training_time
-                                        }
             logger.log_text(f"{hyperparams['model_name']} - Best Params: {best_params}, F1 Score: {f1_val}", severity='INFO')
+
     
     return best_candidates
         
