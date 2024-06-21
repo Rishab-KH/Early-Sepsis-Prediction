@@ -105,11 +105,12 @@ def train_models(X_train, X_val, y_train, y_val):
 
     best_candidates = {}
 
-    for _, hyperparams in enumerate(hyperparameter_set):
+    for i, hyperparams in enumerate(hyperparameter_set):
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         model_path = f"model_{timestamp}"
         
-        with mlflow.start_run():
+        with mlflow.start_run(run_name=hyperparams[i]["model_name"]):
+            
             grid_search = GridSearchCV(estimator=hyperparams['model'], param_grid=hyperparams['params'], cv=5, scoring='f1')
             start_time = time.time()
             grid_search.fit(X_train, y_train)
@@ -158,7 +159,7 @@ def evaluate_best_model(best_model, best_model_name, X_val, y_val):
     conf_matrix = confusion_matrix(y_val, y_pred)
     class_report = classification_report(y_val, y_pred)
     # Log metrics and parameters
-    with mlflow.start_run(run_name=best_model_name):
+    with mlflow.start_run(run_name="best model"):
         mlflow.log_param('model_name', best_model_name)
         mlflow.log_params(best_model['params'])
 
