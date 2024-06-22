@@ -10,7 +10,7 @@ Operational Excellence: Ensure the continuous monitoring of the ML pipeline to u
 
 ## Important Links
 - [Cloud Composer (Production Environment)](https://e954b7c017dd452780d2df44a8d5f5a2-dot-us-central1.composer.googleusercontent.com/home) Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu) to get access
-- Airflow hosted on Compute Engine (Development Environment)[http://35.193.213.112:8080/home]
+- [Airflow hosted on Compute Engine (Development Environment)](http://35.193.213.112:8080/home)
 - [GCS Bucket](https://console.cloud.google.com/storage/browser/sepsis-prediction-mlops/data/processed_data)
 - [MLFlow](https://mlflow-cloud-run-3wcd2ryf5q-uc.a.run.app/)
 - [Streamlit](https://sepsis-streamlit-3wcd2ryf5q-uc.a.run.app/) NOTE: Streamlit app is still under development
