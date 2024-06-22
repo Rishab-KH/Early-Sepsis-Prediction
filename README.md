@@ -315,9 +315,20 @@ Below is the searchspace we used for our [GridSearchCV](https://scikit-learn.org
 ```
 
 ### SHAP Plots
+
+To understand and interpret the predictions made by our XGBoost model, we utilized SHAP (SHapley Additive exPlanations) plots. SHAP is a powerful tool that provides visual explanations of the contributions of each feature to the model's output, enabling us to gain insights into the decision-making process of our machine learning model.
+
+#### SHAP Summary Plot
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/aaa5e3c7-bba8-4ff8-9eb3-f1e57f71fadd)
+
+#### SHAP Beeswarm Plot
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/fddf8610-2a2e-4168-b6ed-0385ad6404a9)
+
+#### Force Plots
+Below are two force plots which shows how different features contributed to the output. According to the summary plot features like ICU length-of-stay and Temperature of the patient has high contribution which made sense. In the below example the patient had a very high ICU length-of-stay (ICULOS) and with other factors resulted in a positive Sepsis
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f5d8731f-9c89-4f67-afdc-e997d88b1901)
+
+While the below shows a negative sepsis case
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/4d581a51-b62b-4a49-b753-41bb233ddcbc)
 
 
