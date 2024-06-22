@@ -1,6 +1,9 @@
 ## INTRODUCTION 
 The Early Sepsis Prediction Project is a pioneering initiative designed to transform the landscape of sepsis management in clinical settings through the integration of advanced machine learning (ML) techniques and robust operational processes. Sepsis, a life-threatening response to infection, requires prompt and accurate detection to improve patient outcomes and reduce mortality rates. This project addresses this critical healthcare challenge by facilitating the seamless deployment and management of ML models tailored for early sepsis prediction.
 
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/83d8bc8a-9e7b-449a-8bfd-f16c84480f54)
+
+
 ## DESCRIPTION 
 The goal of the Early Sepsis Prediction Project is to leverage machine learning models to accurately predict whether patients have sepsis. This entails two primary objectives:
 
