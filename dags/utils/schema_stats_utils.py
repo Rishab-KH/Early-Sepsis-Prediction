@@ -4,9 +4,9 @@ import numpy as np
 from pathlib import Path
 
 # Custom imports
-import dags.utils.config as config
-from dags.utils.log_config import setup_logging
-from dags.utils.data_validation import generate_and_save_schema_and_stats, validate_data
+import utils.config as config
+from utils.log_config import setup_logging
+from utils.data_validation import generate_and_save_schema_and_stats, validate_data
 
 # Logger setup for schema and stats validation
 # DATA_DIR = config.DATA_DIR
