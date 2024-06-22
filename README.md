@@ -249,6 +249,9 @@ To enhance reliability, we implemented an alerting system that sends email notif
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f47cbab1-646d-4138-881e-256f923a62cc)
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/3e4767ba-cdbf-4bf5-9812-e7702d670dc4)
 
+[Vertex AI - Computational Report](https://console.cloud.google.com/monitoring/dashboards/builder/40f6af94-407b-44d0-a9c2-6a0bdbf13534;duration=P14D?project=leafy-sunrise-425218-h4)
+[Endpoint - Computational Report](https://console.cloud.google.com/monitoring/dashboards/builder/69798a5d-8bbf-4d2e-8606-eea3beff5388;duration=P14D?project=leafy-sunrise-425218-h4)
+
 To access these dashboards, Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu)
 
 ## Our Team
