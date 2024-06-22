@@ -240,6 +240,17 @@ The above Gantt chart highlights significant improvement in speeds of processing
 
 By leveraging Google Cloud's powerful data warehousing and storage solutions, we have significantly reduced the time and resources required to process large-scale datasets. This optimized approach not only speeds up the data processing workflow but also enhances the scalability and manageability of our sepsis prediction project.
 
+## Model Efficacy Reports
+
+For the binary classification tasks, We have 3 models RandomForest, XGBoost and Logistic Regression. For every retrain of the pipeline we run a hyperparameter tuning on all the possible parameters and choose the best one. Below we have different AUC-ROC curves for the 3 models
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/6e8dc783-2b27-4996-a82f-3e74ab983ee7)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/1112acfa-48b2-4f4e-84ff-dd4cc0e947c9)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/5cae02c1-d7e1-40a9-a858-2461e04a1741)
+
+
+### ROC-AUC Curve for different models
+
 ## Computational Reports
 
 We developed custom cloud monitoring dashboards to track key metrics for our Vertex AI training pipelines and Flask endpoint. These dashboards provide real-time insights into CPU and memory usage, the number of requests, and other essential metrics. By leveraging cloud-based monitoring tools, we ensured that all relevant data is visualized in an intuitive and accessible manner, facilitating efficient monitoring and decision-making.
