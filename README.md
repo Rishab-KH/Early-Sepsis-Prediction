@@ -271,7 +271,7 @@ We have utilized MLFlow to track our experiments, focusing and hyperparameters a
 
 **Best Model Result:**
 
-![best_model_result](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/0e85d797-4afd-4ce3-a123-f7cd9e9d8bda)
+![best_model_results](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/f96d7732-9ec2-426d-8d82-9ad5c6882650)
 
 #### Model Efficacy Reports
 
