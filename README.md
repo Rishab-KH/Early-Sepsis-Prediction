@@ -249,13 +249,41 @@ By leveraging Google Cloud's powerful data warehousing and storage solutions, we
 
 For the binary classification tasks, We have 3 models RandomForest, XGBoost and Logistic Regression. For every retrain of the pipeline we run a hyperparameter tuning on all the possible parameters and choose the best one. Below we have different AUC-ROC curves for the 3 models
 
-### ROC-AUC Curve for different models
+#### ROC-AUC Curve for different models
 
 <img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/6e8dc783-2b27-4996-a82f-3e74ab983ee7" width="600" height="400">
 <img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/1112acfa-48b2-4f4e-84ff-dd4cc0e947c9" width="600" height="400">
 <img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/5cae02c1-d7e1-40a9-a858-2461e04a1741" width="600" height="400">
 
+#### Hyperparameter Tuning
 
+```javascript
+{
+    'RandomForest': {
+        'model': RandomForestClassifier(),
+        'params': {
+            'n_estimators': [50, 100, 200],
+            'max_depth': [None, 10, 20],
+            'min_samples_split': [2, 5, 10]
+        }
+    },
+    'XGBoost': {
+        'model': XGBClassifier(),
+        'params': {
+            'n_estimators': [50, 100, 200],
+            'max_depth': [3, 6, 9],
+            'learning_rate': [0.01, 0.1, 0.2]
+        }
+    },
+    'LogisticRegression': {
+        'model': LogisticRegression(max_iter=200),
+        'params': {
+            'C': [0.1, 1, 10],
+            'solver': ['liblinear', 'lbfgs']
+        }
+    }
+    }
+```
 
 ## Computational Reports
 
