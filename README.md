@@ -289,6 +289,11 @@ Below is the searchspace we used for our [GridSearchCV](https://scikit-learn.org
 ```
 
 ### SHAP Plots
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/aaa5e3c7-bba8-4ff8-9eb3-f1e57f71fadd)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/fddf8610-2a2e-4168-b6ed-0385ad6404a9)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f5d8731f-9c89-4f67-afdc-e997d88b1901)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/4d581a51-b62b-4a49-b753-41bb233ddcbc)
+
 
 ## Computational Reports
 
