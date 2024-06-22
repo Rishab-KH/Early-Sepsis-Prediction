@@ -251,15 +251,27 @@ By leveraging Google Cloud's powerful data warehousing and storage solutions, we
 
 Our Machine learning pipeline is hosted on Vertex AI in Google Cloud Platform which utilizes MLFlow for various experiment tracking.
 
-### Pipeline Component:
+#### Pipeline Component:
 
-1. Trainer:
+1. **Trainer**:
    - train.py: Python script that trains the classification model for sepsis prediction in patient records. Training platform is deployed on 		Vertex AI
-   - Dockerfile: Containerizes training environment to ensure consistency across platforms
-2. Serve:
-3. Ineference:
+   - Dockerfile: Containerizes training environment to ensure consistency across various platforms
+2. **Serve**:
+   - predict.py: Flask application that makes prediction using the best training model
+   - Dockerfile: Contaierizes serving environment to ensure consistency across various platforms
+3. **Streamlit**:
+   - streamlit.py: Streamlit application which handles incoming patient records and demonstrates real world application
+   - Dockerfile: Contaierizes and provides an endpoint for the streamlit application
 
+#### Experimental Tracking using MLFlow:
 
+We have utilized MLFlow to track our experiments, focusing and hyperparameters and metrics that are crucial for sepsis classification model. MLFlows UI allows us to monitor, compare and optimize hyperparameters effectively.
+
+![mlflow results](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/5e2a15d4-2a49-4ab2-936f-cbec741c196f)
+
+**Best Model Result:**
+
+![best_model_result](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/0e85d797-4afd-4ce3-a123-f7cd9e9d8bda)
 
 #### Model Efficacy Reports
 
