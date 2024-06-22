@@ -267,7 +267,7 @@ Our Machine learning pipeline is hosted on Vertex AI in Google Cloud Platform wh
 
 We have utilized MLFlow to track our experiments, focusing and hyperparameters and metrics that are crucial for sepsis classification model. MLFlows UI allows us to monitor, compare and optimize hyperparameters effectively.
 
-![mlflow results](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/5e2a15d4-2a49-4ab2-936f-cbec741c196f)
+![MLFlow_UI_Results](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/2919cd1c-1f88-4aa4-9990-990d83d7b37b)
 
 **Best Model Result:**
 
