@@ -8,6 +8,10 @@ Prediction Aim: Utilize advanced ML models to predict the presence of sepsis in 
 
 Operational Excellence: Ensure the continuous monitoring of the ML pipeline to uphold model accuracy, reliability, and integration within clinical workflows.
 
+## Important Links
+
+
+
 ## DATASET 
 Link to dataset used - https://physionet.org/content/challenge-2019/1.0.0/.
 
@@ -126,10 +130,11 @@ DAG-1 comprises 19 distinct tasks, each designed to enhance the quality and usab
 The [link](https://console.cloud.google.com/storage/browser/sepsis-prediction-mlops/data/processed_data) to our bucket
 
 # Machine Learning Model Pipeline
-< EXPLAIN DAG2 HERE>
+< RAGHAVI EXPLAIN DAG2 HERE>
+<DERIL INSERT DAG2 PIC HERE>
 # Machine Learning Scheduled Retraining Pipeline
-< EXPLAIN DAG3 HERE>
-
+< RAGAHVI EXPLAIN DAG3 HERE>
+<DERIL INSERT DAG3 PIC HERE>
 ## Model Pipeline
 
 Our Machine learning pipeline is hosted on Vertex AI in Google Cloud Platform which utilizes MLFlow for various experiment tracking.
