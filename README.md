@@ -127,11 +127,110 @@ The [link](https://console.cloud.google.com/storage/browser/sepsis-prediction-ml
 
 # Machine Learning Model Pipeline
 < EXPLAIN DAG2 HERE>
-## Experimental Tracking (MLFlow)
-< RISHAB TO INSERT SCREENSHOT HERE AND WRITE ABOUT MLFLOW >
-
 # Machine Learning Scheduled Retraining Pipeline
 < EXPLAIN DAG3 HERE>
+
+## Model Pipeline
+
+Our Machine learning pipeline is hosted on Vertex AI in Google Cloud Platform which utilizes MLFlow for various experiment tracking.
+
+#### Pipeline Component:
+
+1. **Trainer**:
+   - train.py: Python script that trains the classification model for sepsis prediction in patient records. Training platform is deployed on 		Vertex AI
+   - Dockerfile: Containerizes training environment to ensure consistency across various platforms
+2. **Serve**:
+   - predict.py: Flask application that makes prediction using the best training model
+   - Dockerfile: Contaierizes serving environment to ensure consistency across various platforms
+3. **Streamlit**:
+   - streamlit.py: Streamlit application which handles incoming patient records and demonstrates real world application
+   - Dockerfile: Contaierizes and provides an endpoint for the streamlit application
+
+#### Experimental Tracking using MLFlow:
+
+We have utilized MLFlow to track our experiments, focusing and hyperparameters and metrics that are crucial for sepsis classification model. MLFlows UI allows us to monitor, compare and optimize hyperparameters effectively.
+
+![MLFlow_UI_Results](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/2919cd1c-1f88-4aa4-9990-990d83d7b37b)
+
+**Best Model Result:**
+
+![Best mlops result](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/75ad0434-3757-4be0-8001-4d79e549dfed)
+
+#### Model Efficacy Reports
+
+For the binary classification tasks, We have 3 models RandomForest, XGBoost and Logistic Regression. For every retrain of the pipeline we run a hyperparameter tuning on all the possible parameters and choose the best one. Below we have different AUC-ROC curves for the 3 models
+
+#### ROC-AUC Curve for different models
+
+<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/6e8dc783-2b27-4996-a82f-3e74ab983ee7" width="600" height="400">
+<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/1112acfa-48b2-4f4e-84ff-dd4cc0e947c9" width="600" height="400">
+<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/5cae02c1-d7e1-40a9-a858-2461e04a1741" width="600" height="400">
+
+#### Hyperparameter Tuning
+Below is the searchspace we used for our [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) with 5 folds and F1 as the scoring metric
+
+```javascript
+{
+    'RandomForest': {
+        'model': RandomForestClassifier(),
+        'params': {
+            'n_estimators': [50, 100],
+            'max_depth': [10, 20],
+            'min_samples_split': [5, 7]
+        }
+    },
+    'XGBoost': {
+        'model': XGBClassifier(),
+        'params': {
+            'n_estimators': [50, 100, 200],
+            'max_depth': [3, 6, 9],
+            'learning_rate': [0.01, 0.1, 0.2]
+        }
+    },
+    'LogisticRegression': {
+        'model': LogisticRegression(max_iter=200),
+        'params': {
+            'C': [0.1, 1, 10],
+            'solver': ['liblinear', 'lbfgs']
+        }
+    }
+}
+```
+
+### SHAP Plots
+
+To understand and interpret the predictions made by our XGBoost model, we utilized SHAP (SHapley Additive exPlanations) plots. SHAP is a powerful tool that provides visual explanations of the contributions of each feature to the model's output, enabling us to gain insights into the decision-making process of our machine learning model.
+
+#### SHAP Summary Plot
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/aaa5e3c7-bba8-4ff8-9eb3-f1e57f71fadd)
+
+#### SHAP Beeswarm Plot
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/fddf8610-2a2e-4168-b6ed-0385ad6404a9)
+
+#### Force Plots
+Below are two force plots which shows how different features contributed to the output. According to the summary plot features like ICU length-of-stay and Temperature of the patient has high contribution which made sense. In the below example the patient had a very high ICU length-of-stay (ICULOS) and with other factors resulted in a positive Sepsis
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f5d8731f-9c89-4f67-afdc-e997d88b1901)
+
+While the below shows a negative sepsis case
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/4d581a51-b62b-4a49-b753-41bb233ddcbc)
+
+
+## Computational Reports
+
+We developed custom cloud monitoring dashboards to track key metrics for our Vertex AI training pipelines and Flask endpoint. These dashboards provide real-time insights into CPU and memory usage, the number of requests, and other essential metrics. By leveraging cloud-based monitoring tools, we ensured that all relevant data is visualized in an intuitive and accessible manner, facilitating efficient monitoring and decision-making.
+
+To enhance reliability, we implemented an alerting system that sends email notifications whenever CPU or memory usage exceeds predefined thresholds. This proactive alerting mechanism helps us quickly address potential issues, ensuring the smooth operation of our services and maintaining optimal performance.
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f47cbab1-646d-4138-881e-256f923a62cc)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/3e4767ba-cdbf-4bf5-9812-e7702d670dc4)
+
+[Vertex AI - Computational Report](https://console.cloud.google.com/monitoring/dashboards/builder/40f6af94-407b-44d0-a9c2-6a0bdbf13534;duration=P14D?project=leafy-sunrise-425218-h4)
+
+
+[Endpoint - Computational Report](https://console.cloud.google.com/monitoring/dashboards/builder/69798a5d-8bbf-4d2e-8606-eea3beff5388;duration=P14D?project=leafy-sunrise-425218-h4)
+
+To access these dashboards, Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu)
+
 ## Installation
 
 You can directly view our server hosted Airflow instance [here](http://35.193.213.112:8080/home)
@@ -246,107 +345,6 @@ FROM sepsis.dataset_temporary LIMIT 9223372036854775807;
 The above Gantt chart highlights significant improvement in speeds of processing the PSV to CSV data, removing the bottleneck 
 
 By leveraging Google Cloud's powerful data warehousing and storage solutions, we have significantly reduced the time and resources required to process large-scale datasets. This optimized approach not only speeds up the data processing workflow but also enhances the scalability and manageability of our sepsis prediction project.
-
-## Model Pipeline
-
-Our Machine learning pipeline is hosted on Vertex AI in Google Cloud Platform which utilizes MLFlow for various experiment tracking.
-
-#### Pipeline Component:
-
-1. **Trainer**:
-   - train.py: Python script that trains the classification model for sepsis prediction in patient records. Training platform is deployed on 		Vertex AI
-   - Dockerfile: Containerizes training environment to ensure consistency across various platforms
-2. **Serve**:
-   - predict.py: Flask application that makes prediction using the best training model
-   - Dockerfile: Contaierizes serving environment to ensure consistency across various platforms
-3. **Streamlit**:
-   - streamlit.py: Streamlit application which handles incoming patient records and demonstrates real world application
-   - Dockerfile: Contaierizes and provides an endpoint for the streamlit application
-
-#### Experimental Tracking using MLFlow:
-
-We have utilized MLFlow to track our experiments, focusing and hyperparameters and metrics that are crucial for sepsis classification model. MLFlows UI allows us to monitor, compare and optimize hyperparameters effectively.
-
-![MLFlow_UI_Results](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/2919cd1c-1f88-4aa4-9990-990d83d7b37b)
-
-**Best Model Result:**
-
-![Best mlops result](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/75ad0434-3757-4be0-8001-4d79e549dfed)
-
-#### Model Efficacy Reports
-
-For the binary classification tasks, We have 3 models RandomForest, XGBoost and Logistic Regression. For every retrain of the pipeline we run a hyperparameter tuning on all the possible parameters and choose the best one. Below we have different AUC-ROC curves for the 3 models
-
-#### ROC-AUC Curve for different models
-
-<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/6e8dc783-2b27-4996-a82f-3e74ab983ee7" width="600" height="400">
-<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/1112acfa-48b2-4f4e-84ff-dd4cc0e947c9" width="600" height="400">
-<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/5cae02c1-d7e1-40a9-a858-2461e04a1741" width="600" height="400">
-
-#### Hyperparameter Tuning
-Below is the searchspace we used for our [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) with 5 folds and F1 as the scoring metric
-
-```javascript
-{
-    'RandomForest': {
-        'model': RandomForestClassifier(),
-        'params': {
-            'n_estimators': [50, 100],
-            'max_depth': [10, 20],
-            'min_samples_split': [5, 7]
-        }
-    },
-    'XGBoost': {
-        'model': XGBClassifier(),
-        'params': {
-            'n_estimators': [50, 100, 200],
-            'max_depth': [3, 6, 9],
-            'learning_rate': [0.01, 0.1, 0.2]
-        }
-    },
-    'LogisticRegression': {
-        'model': LogisticRegression(max_iter=200),
-        'params': {
-            'C': [0.1, 1, 10],
-            'solver': ['liblinear', 'lbfgs']
-        }
-    }
-}
-```
-
-### SHAP Plots
-
-To understand and interpret the predictions made by our XGBoost model, we utilized SHAP (SHapley Additive exPlanations) plots. SHAP is a powerful tool that provides visual explanations of the contributions of each feature to the model's output, enabling us to gain insights into the decision-making process of our machine learning model.
-
-#### SHAP Summary Plot
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/aaa5e3c7-bba8-4ff8-9eb3-f1e57f71fadd)
-
-#### SHAP Beeswarm Plot
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/fddf8610-2a2e-4168-b6ed-0385ad6404a9)
-
-#### Force Plots
-Below are two force plots which shows how different features contributed to the output. According to the summary plot features like ICU length-of-stay and Temperature of the patient has high contribution which made sense. In the below example the patient had a very high ICU length-of-stay (ICULOS) and with other factors resulted in a positive Sepsis
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f5d8731f-9c89-4f67-afdc-e997d88b1901)
-
-While the below shows a negative sepsis case
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/4d581a51-b62b-4a49-b753-41bb233ddcbc)
-
-
-## Computational Reports
-
-We developed custom cloud monitoring dashboards to track key metrics for our Vertex AI training pipelines and Flask endpoint. These dashboards provide real-time insights into CPU and memory usage, the number of requests, and other essential metrics. By leveraging cloud-based monitoring tools, we ensured that all relevant data is visualized in an intuitive and accessible manner, facilitating efficient monitoring and decision-making.
-
-To enhance reliability, we implemented an alerting system that sends email notifications whenever CPU or memory usage exceeds predefined thresholds. This proactive alerting mechanism helps us quickly address potential issues, ensuring the smooth operation of our services and maintaining optimal performance.
-
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f47cbab1-646d-4138-881e-256f923a62cc)
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/3e4767ba-cdbf-4bf5-9812-e7702d670dc4)
-
-[Vertex AI - Computational Report](https://console.cloud.google.com/monitoring/dashboards/builder/40f6af94-407b-44d0-a9c2-6a0bdbf13534;duration=P14D?project=leafy-sunrise-425218-h4)
-
-
-[Endpoint - Computational Report](https://console.cloud.google.com/monitoring/dashboards/builder/69798a5d-8bbf-4d2e-8606-eea3beff5388;duration=P14D?project=leafy-sunrise-425218-h4)
-
-To access these dashboards, Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu)
 
 ## Our Team
 
