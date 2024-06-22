@@ -98,7 +98,7 @@ def pre_process_split_data(data):
 def train_models(X_train, X_val, y_train, y_val):
 
     hyperparameter_set = [
-        # {'model': RandomForestClassifier(), 'model_name': 'Random_Forest_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [None, 10, 20], 'min_samples_split': [2, 5, 10]}},
+        {'model': RandomForestClassifier(), 'model_name': 'Random_Forest_Classifier', 'params': {'n_estimators': [50, 100], 'max_depth': [10, 20], 'min_samples_split': [5, 7]}},
         {'model': XGBClassifier(),  'model_name': 'XGB_Classifier', 'params': {'n_estimators': [50, 100, 200], 'max_depth': [3, 6, 9], 'learning_rate': [0.01, 0.1, 0.2]}},
         {'model': LogisticRegression(max_iter=200),  'model_name': 'Logistic_Regression', 'params': {'C': [0.1, 1, 10], 'solver': ['liblinear', 'lbfgs']}}
         ]
