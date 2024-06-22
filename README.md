@@ -240,6 +240,17 @@ The above Gantt chart highlights significant improvement in speeds of processing
 
 By leveraging Google Cloud's powerful data warehousing and storage solutions, we have significantly reduced the time and resources required to process large-scale datasets. This optimized approach not only speeds up the data processing workflow but also enhances the scalability and manageability of our sepsis prediction project.
 
+## Computational Reports
+
+We developed custom cloud monitoring dashboards to track key metrics for our Vertex AI training pipelines and Flask endpoint. These dashboards provide real-time insights into CPU and memory usage, the number of requests, and other essential metrics. By leveraging cloud-based monitoring tools, we ensured that all relevant data is visualized in an intuitive and accessible manner, facilitating efficient monitoring and decision-making.
+
+To enhance reliability, we implemented an alerting system that sends email notifications whenever CPU or memory usage exceeds predefined thresholds. This proactive alerting mechanism helps us quickly address potential issues, ensuring the smooth operation of our services and maintaining optimal performance.
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f47cbab1-646d-4138-881e-256f923a62cc)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/3e4767ba-cdbf-4bf5-9812-e7702d670dc4)
+
+To access these dashboards, Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu)
+
 ## Our Team
 
 [Sharanya Senthil](mailto:senthil.sh@northeastern.edu)
