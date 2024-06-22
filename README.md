@@ -247,7 +247,21 @@ The above Gantt chart highlights significant improvement in speeds of processing
 
 By leveraging Google Cloud's powerful data warehousing and storage solutions, we have significantly reduced the time and resources required to process large-scale datasets. This optimized approach not only speeds up the data processing workflow but also enhances the scalability and manageability of our sepsis prediction project.
 
-## Model Efficacy Reports
+## Model Pipeline
+
+Our Machine learning pipeline is hosted on Vertex AI in Google Cloud Platform which utilizes MLFlow for various experiment tracking.
+
+### Pipeline Component:
+
+1. Trainer:
+   - train.py: Python script that trains the classification model for sepsis prediction in patient records. Training platform is deployed on 		Vertex AI
+   - Dockerfile: Containerizes training environment to ensure consistency across platforms
+2. Serve:
+3. Ineference:
+
+
+
+#### Model Efficacy Reports
 
 For the binary classification tasks, We have 3 models RandomForest, XGBoost and Logistic Regression. For every retrain of the pipeline we run a hyperparameter tuning on all the possible parameters and choose the best one. Below we have different AUC-ROC curves for the 3 models
 
@@ -265,9 +279,9 @@ Below is the searchspace we used for our [GridSearchCV](https://scikit-learn.org
     'RandomForest': {
         'model': RandomForestClassifier(),
         'params': {
-            'n_estimators': [50, 100, 200],
-            'max_depth': [None, 10, 20],
-            'min_samples_split': [2, 5, 10]
+            'n_estimators': [50, 100],
+            'max_depth': [10, 20],
+            'min_samples_split': [5, 7]
         }
     },
     'XGBoost': {
