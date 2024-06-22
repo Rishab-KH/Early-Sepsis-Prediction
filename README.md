@@ -247,7 +247,7 @@ For the binary classification tasks, We have 3 models RandomForest, XGBoost and 
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/6e8dc783-2b27-4996-a82f-3e74ab983ee7)
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/1112acfa-48b2-4f4e-84ff-dd4cc0e947c9)
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/5cae02c1-d7e1-40a9-a858-2461e04a1741)
-
+<img src="[https://github.com/favicon.ico](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/6e8dc783-2b27-4996-a82f-3e74ab983ee7)" width="48">
 
 ### ROC-AUC Curve for different models
 
