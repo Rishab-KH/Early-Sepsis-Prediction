@@ -126,10 +126,12 @@ DAG-1 comprises 19 distinct tasks, each designed to enhance the quality and usab
 The [link](https://console.cloud.google.com/storage/browser/sepsis-prediction-mlops/data/processed_data) to our bucket
 
 # Machine Learning Model Pipeline
-
+< EXPLAIN DAG2 HERE>
 ## Experimental Tracking (MLFlow)
+< RISHAB TO INSERT SCREENSHOT HERE AND WRITE ABOUT MLFLOW >
 
 # Machine Learning Scheduled Retraining Pipeline
+< EXPLAIN DAG3 HERE>
 ## Installation
 
 You can directly view our server hosted Airflow instance [here](http://35.193.213.112:8080/home)
@@ -256,6 +258,7 @@ For the binary classification tasks, We have 3 models RandomForest, XGBoost and 
 <img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/5cae02c1-d7e1-40a9-a858-2461e04a1741" width="600" height="400">
 
 #### Hyperparameter Tuning
+Below is the searchspace we used for our [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) with 5 folds and F1 as the scoring metric
 
 ```javascript
 {
@@ -282,8 +285,10 @@ For the binary classification tasks, We have 3 models RandomForest, XGBoost and 
             'solver': ['liblinear', 'lbfgs']
         }
     }
-    }
+}
 ```
+
+### SHAP Plots
 
 ## Computational Reports
 
