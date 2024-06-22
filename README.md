@@ -73,6 +73,7 @@ Following are the prerequisites of our project:
 - Streamlit
 - Flask
 
+# Data Pipeline
 ## DAG 1 - DATA PRE-PROCESSING 
 
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/fc7a1343-7ca6-45e8-bd0e-125871216448)
@@ -124,7 +125,13 @@ DAG-1 comprises 19 distinct tasks, each designed to enhance the quality and usab
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/5ecbd9dd-cb8d-4a2f-ad84-ef792a1d11b9)
 The [link](https://console.cloud.google.com/storage/browser/sepsis-prediction-mlops/data/processed_data) to our bucket
 
+# Machine Learning Model Pipeline
+< EXPLAIN DAG2 HERE>
+## Experimental Tracking (MLFlow)
+< RISHAB TO INSERT SCREENSHOT HERE AND WRITE ABOUT MLFLOW >
 
+# Machine Learning Scheduled Retraining Pipeline
+< EXPLAIN DAG3 HERE>
 ## Installation
 
 You can directly view our server hosted Airflow instance [here](http://35.193.213.112:8080/home)
@@ -244,12 +251,49 @@ By leveraging Google Cloud's powerful data warehousing and storage solutions, we
 
 For the binary classification tasks, We have 3 models RandomForest, XGBoost and Logistic Regression. For every retrain of the pipeline we run a hyperparameter tuning on all the possible parameters and choose the best one. Below we have different AUC-ROC curves for the 3 models
 
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/6e8dc783-2b27-4996-a82f-3e74ab983ee7)
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/1112acfa-48b2-4f4e-84ff-dd4cc0e947c9)
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/5cae02c1-d7e1-40a9-a858-2461e04a1741)
+#### ROC-AUC Curve for different models
 
+<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/6e8dc783-2b27-4996-a82f-3e74ab983ee7" width="600" height="400">
+<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/1112acfa-48b2-4f4e-84ff-dd4cc0e947c9" width="600" height="400">
+<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/5cae02c1-d7e1-40a9-a858-2461e04a1741" width="600" height="400">
 
-### ROC-AUC Curve for different models
+#### Hyperparameter Tuning
+Below is the searchspace we used for our [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) with 5 folds and F1 as the scoring metric
+
+```javascript
+{
+    'RandomForest': {
+        'model': RandomForestClassifier(),
+        'params': {
+            'n_estimators': [50, 100, 200],
+            'max_depth': [None, 10, 20],
+            'min_samples_split': [2, 5, 10]
+        }
+    },
+    'XGBoost': {
+        'model': XGBClassifier(),
+        'params': {
+            'n_estimators': [50, 100, 200],
+            'max_depth': [3, 6, 9],
+            'learning_rate': [0.01, 0.1, 0.2]
+        }
+    },
+    'LogisticRegression': {
+        'model': LogisticRegression(max_iter=200),
+        'params': {
+            'C': [0.1, 1, 10],
+            'solver': ['liblinear', 'lbfgs']
+        }
+    }
+}
+```
+
+### SHAP Plots
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/aaa5e3c7-bba8-4ff8-9eb3-f1e57f71fadd)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/fddf8610-2a2e-4168-b6ed-0385ad6404a9)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f5d8731f-9c89-4f67-afdc-e997d88b1901)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/4d581a51-b62b-4a49-b753-41bb233ddcbc)
+
 
 ## Computational Reports
 
