@@ -162,7 +162,7 @@ Our Machine learning pipeline is hosted on Vertex AI in Google Cloud Platform wh
 
 1. **Loading Pickle Files**: The train.py script loads X_train, X_test, Y_train, and Y_test .pkl files from DAG 1 for training and pre-processing the data in DAG 2.
 2. **Class Imbalance Handling:** The script addresses class imbalance in the dataset, ensuring fair and accurate model training by balancing the classifications of patients with and without sepsis.
-3.** Model Training and Hyperparameter Tuning:** Extensive model training and tuning were conducted on Logistic Regression, Random Forest Classifier, and XGBoost Classifier using GridSearchCV.
+3. ** Model Training and Hyperparameter Tuning:** Extensive model training and tuning were conducted on Logistic Regression, Random Forest Classifier, and XGBoost Classifier using GridSearchCV.
 Tuning parameters for each model:
 - Logistic Regression: penalty, C, solver
 - Random Forest Classifier: n_estimators, max_depth, min_samples_split
