@@ -168,20 +168,21 @@ Tuning parameters for each model:
 - Random Forest Classifier: n_estimators, max_depth, min_samples_split
 - XGBoost Classifier: learning_rate, n_estimators, max_depth
 
-After extensive evaluation, the XGBoost Classifier emerged as the best-performing model, achieving a weighted F1 score of 0.97 on the test data. 
+After extensive evaluation, the XGBoost Classifier  
 
 #### Experimental Tracking using MLFlow:
 
 We have utilized MLFlow to track our experiments, focusing and hyperparameters and metrics that are crucial for sepsis classification model. MLFlows UI allows us to monitor, compare and optimize hyperparameters effectively.
 
-![MLFlow_UI_Results](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/2919cd1c-1f88-4aa4-9990-990d83d7b37b)
+![MLFlow_UI_Results](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/336cdcb1-a9ca-4331-a924-442503364a20)
 
 **Best Model Result:**
 
 ![Best mlops result](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/75ad0434-3757-4be0-8001-4d79e549dfed)
 
-Link to MLFLow UI: (https://mlflow-cloud-run)
+Link to MLFLow UI: [https://mlflow-cloud-run](https://mlflow-cloud-run-3wcd2ryf5q-uc.a.run.app/#/experiments/0?searchFilter=&orderByKey=attributes.start_time&orderByAsc=false&startTime=ALL&lifecycleFilter=Active&datasetsFilter=W10%3D&modelVersionFilter=All%20Runs&selectedColumns=attributes.%60Source%60,attributes.%60Models%60,attributes.%60Dataset%60&compareRunCharts=)
 
+From the images above, we can visualize the model performance with different hyperparameters. The XGBoost classifier emerged as the best-performing model, achieving a weighted F1 score of 0.97 on the test data.
 
 #### Model Efficacy Reports
 
