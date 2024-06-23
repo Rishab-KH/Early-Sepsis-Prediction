@@ -243,7 +243,6 @@ While the below shows a negative sepsis case
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/4d581a51-b62b-4a49-b753-41bb233ddcbc)
 
 # Machine Learning Scheduled Retraining Pipeline
-< RAGAHVI EXPLAIN DAG3 HERE>
 <DERIL INSERT DAG3 PIC HERE>
 
 ## Computational Reports
