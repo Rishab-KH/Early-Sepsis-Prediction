@@ -244,7 +244,7 @@ To enhance reliability, we implemented an alerting system that sends email notif
 
 To access these dashboards, Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu)
 
-## Installation
+## Installation (Locally)
 
 You can directly view our server hosted Airflow instance [here](http://35.193.213.112:8080/home)
 
