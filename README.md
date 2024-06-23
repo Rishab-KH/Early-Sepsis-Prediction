@@ -136,7 +136,10 @@ The [link](https://console.cloud.google.com/storage/browser/sepsis-prediction-ml
 
 # Machine Learning Model Pipeline
 < RAGHAVI EXPLAIN DAG2 HERE>
-<DERIL INSERT DAG2 PIC HERE>
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/fdf319cc-2204-472f-b35d-4c40997bd591)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/d7e4fea7-938e-4364-b628-c6f49a6c5e03)
+
 # Machine Learning Scheduled Retraining Pipeline
 < RAGAHVI EXPLAIN DAG3 HERE>
 <DERIL INSERT DAG3 PIC HERE>
