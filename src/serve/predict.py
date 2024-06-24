@@ -161,6 +161,7 @@ def data_preprocess_pipeline(features):
 
 
 
+
     grouped_by_patient = df.groupby('Patient_ID')
 
     # Impute missing values with forward and backward fill
@@ -254,6 +255,9 @@ def predict():
 
     # Convert the NumPy array to a DataFrame with the column names
     df = pd.DataFrame(input_array, columns=col_names)
+
+    # Add the "created_at" column with the current datetime
+    df['created_at'] = datetime.now()
 
     # Location to save the file
     predict_path = os.getenv("PREDICT_PATH")

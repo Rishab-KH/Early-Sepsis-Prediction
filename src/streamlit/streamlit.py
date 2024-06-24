@@ -10,10 +10,10 @@ load_dotenv()
 streamlit_uri = os.getenv('streamlit_uri')
 
 def main():
-    st.title("PSV File Upload and Prediction")
+    st.title("EMR Sepsis Prediction System")
 
     # Allow the user to upload a PSV file
-    uploaded_file = st.file_uploader("Choose a PSV file", type="psv")
+    uploaded_file = st.file_uploader("Upload a patient record (PSV format)", type="psv")
 
     if uploaded_file is not None:
         # Read the file as a dataframe

@@ -1,6 +1,7 @@
 from airflow import DAG
 from datetime import datetime, timedelta
 import os
+import pandas as pd
 import sys
 from airflow.operators.python import PythonOperator
 from airflow.operators.python import BranchPythonOperator
@@ -16,8 +17,7 @@ from dags.utils.log_config import setup_logging
 from dags.utils.schema_stats_utils import schema_and_stats_validation
 
 
-# Prediction path
-DATA_DIR = config.PREDICT_DIR
+
 
 # Stats Schema File
 STATS_SCHEMA_FILE = config.STATS_SCHEMA_FILE
@@ -35,6 +35,20 @@ default_args = {
 BUCKET = config.bucket
 
 
+def get_data_location():
+    """Return the data directory"""
+    return config.PREDICT_DIR
+
+def drop_created_at_column(**kwargs):
+    """Function to drop the created_at column from the DataFrame"""
+    ti = kwargs['ti']
+    df_path = ti.xcom_pull(task_ids='get_data_location')
+    df = pd.read_csv(df_path)
+    if 'created_at' in df.columns:
+        df.drop(columns=['created_at'], inplace=True)
+        df.to_csv(df_path, index=False)
+    logger.info("Dropped the 'created_at' column from the DataFrame")
+
 
 with DAG(
     dag_id = "monitor_data_and_model",
@@ -49,7 +63,13 @@ with DAG(
 
     task_get_data_directory = PythonOperator(
         task_id = "get_data_location",
-        python_callable=lambda: config.DATA_DIR
+        python_callable=get_data_location
+    )
+
+    task_drop_created_at_column = PythonOperator(
+        task_id='prod_data_preprocess',
+        python_callable=drop_created_at_column,
+        provide_context=True
     )
 
     task_data_schema_and_statastics_validation = BranchPythonOperator(
@@ -76,8 +96,8 @@ with DAG(
     )
     
 
-    task_get_data_directory >> task_data_schema_and_statastics_validation 
-    
+    task_get_data_directory >> task_drop_created_at_column >> task_data_schema_and_statastics_validation 
+
     # If validation succeeds return task_end from utils/schema_stats_utils 
     task_data_schema_and_statastics_validation >> task_end
     # If validation fails return email validation fail which will create the email content and send it to admin for monitoring
