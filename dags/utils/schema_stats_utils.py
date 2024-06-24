@@ -40,7 +40,7 @@ def schema_and_stats_validation(ti):
     if validation_result:
         if "batch" in data_dir: # If we have batch-x in gs:// that means we are running retrain pipeline
             return ["download_data","download_scaler","download_latest_model"]
-        elif "prod_data" in data_dir:
+        elif "prod_data" in data_dir: # If we have prod_data in gs:// that means we are running the serve pipeline
             return 'end_monitor_task'
         else:
             return 'data_processing_and_saving.train_test_split'

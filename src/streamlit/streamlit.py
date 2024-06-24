@@ -21,7 +21,8 @@ def main():
         st.write("File Content:")
         st.write(df)
 
-        # Prepare the data for prediction
+        # Prepare the data for prediction and col names
+        col_names = list(df.columns)
         features = df.replace([np.nan, np.inf, -np.inf], None).values.tolist()
 
         # Send the data to the /predict endpoint
@@ -32,7 +33,7 @@ def main():
             return
 
         try:
-            response = requests.post(url, json={"data": features})
+            response = requests.post(url, json={"data": features, "columns": col_names})
             response.raise_for_status()  # Raise an error for bad status codes
             predictions = response.json().get("predictions")
             st.write("Predictions:")
