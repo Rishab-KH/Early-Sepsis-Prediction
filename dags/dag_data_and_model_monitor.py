@@ -48,8 +48,8 @@ def drop_created_at_column(**kwargs):
         df.drop(columns=['created_at'], inplace=True)
         df.to_csv(df_path, index=False)
     logger.info("Dropped the 'created_at' column from the DataFrame")
-
-
+    logger.info(f"Existing columns in production data {df.columns}")
+    
 with DAG(
     dag_id = "monitor_data_and_model",
     description = "This DAG is responsible for data and model monitoring",
