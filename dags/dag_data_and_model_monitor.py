@@ -43,10 +43,14 @@ def drop_created_at_column(**kwargs):
     """Function to drop the created_at column from the DataFrame"""
     ti = kwargs['ti']
     df_path = ti.xcom_pull(task_ids='get_data_location')
-    df = pd.read_csv(df_path)
+    df_path_list = df_path.split("/")
+    modified_df_path = "/".join(df_path_list[:-1]) + f"/archived_{df_path_list[-1]}" # Src of the data
+    
+    df = pd.read_csv(modified_df_path)
+
     if 'created_at' in df.columns:
         df.drop(columns=['created_at'], inplace=True)
-        df.to_csv(df_path, index=False)
+        df.to_csv(df_path, index=False) # A copy of the CSV without the created at column with name ProdDataset.csv
     logger.info("Dropped the 'created_at' column from the DataFrame")
     logger.info(f"Existing columns in production data {df.columns}")
     
