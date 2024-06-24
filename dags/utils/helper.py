@@ -96,3 +96,31 @@ def prepare_email_content(**context):
     """
     return html_content
 
+
+def prepare_email_content_prod(**context):
+    ti = context['ti']
+    validation_message = ti.xcom_pull(task_ids='if_validate_data_schema_and_stats', key='validation_message')
+    
+    dag_run = context['dag_run']
+    dag_id = dag_run.dag_id
+    execution_date = dag_run.execution_date.isoformat()
+    task_id = ti.task_id
+    owner = ti.task.dag.owner
+    
+    # Constructing the HTML content for the email.
+    html_content = f"""
+    <h3>Validation of Schema/Stats Failed for Production Data</h3>
+    <p>Find the error below:</p>
+    <p>{validation_message}</p>
+    <p>Data Drift has occured between production data and train data. User needs to send more data similar to production data for training</p>
+    <br>
+    <strong>DAG Details:</strong>
+    <ul>
+        <li>DAG ID: {dag_id}</li>
+        <li>Task ID: {task_id}</li>
+        <li>Execution Date: {str(execution_date)}</li>
+        <li>Owner: {owner}</li>
+    </ul>
+    <p>This is an automated message from Airflow. Please do not reply directly to this email.</p>
+    """
+    return html_content

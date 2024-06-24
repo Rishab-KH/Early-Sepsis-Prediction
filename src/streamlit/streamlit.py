@@ -3,6 +3,11 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
+streamlit_uri = os.getenv('streamlit_uri')
 
 def main():
     st.title("PSV File Upload and Prediction")
@@ -21,7 +26,7 @@ def main():
 
         # Send the data to the /predict endpoint
         #url = os.getenv("PREDICT_API_URL")
-        url = "https://sepsis-predict-3wcd2ryf5q-uc.a.run.app/predict"
+        url = f"{streamlit_uri}/predict"
         if url is None:
             st.error("PREDICT_API_URL environment variable is not set.")
             return
