@@ -86,9 +86,9 @@ with DAG(
     
     task_pull_predict_data = GCSToLocalFilesystemOperator(
         task_id="download_production_data",
-        object_name="data/modified_data/prod_data/predict.csv",
+        object_name="data/modified_data/prod_data/ProdDataset.csv",
         bucket=BUCKET,
-        filename="data/predict.csv",
+        filename="data/ProdDataset.csv",
     )
 
     task_pull_schema_validation = GCSToLocalFilesystemOperator(
