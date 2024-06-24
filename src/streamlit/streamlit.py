@@ -20,7 +20,8 @@ def main():
         features = df.replace([np.nan, np.inf, -np.inf], None).values.tolist()
 
         # Send the data to the /predict endpoint
-        url = os.getenv("PREDICT_API_URL")
+        #url = os.getenv("PREDICT_API_URL")
+        url = "https://sepsis-predict-3wcd2ryf5q-uc.a.run.app/predict"
         if url is None:
             st.error("PREDICT_API_URL environment variable is not set.")
             return
