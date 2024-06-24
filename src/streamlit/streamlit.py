@@ -1,40 +1,38 @@
-import altair as alt
+import os
 import numpy as np
 import pandas as pd
 import streamlit as st
+import requests
 
-"""
-# Welcome to Streamlit!
+def main():
+    st.title("PSV File Upload and Prediction")
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+    # Allow the user to upload a PSV file
+    uploaded_file = st.file_uploader("Choose a PSV file", type="psv")
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+    if uploaded_file is not None:
+        # Read the file as a dataframe
+        df = pd.read_csv(uploaded_file, delimiter='|')
+        st.write("File Content:")
+        st.write(df)
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+        # Prepare the data for prediction
+        features = df.replace([np.nan, np.inf, -np.inf], None).values.tolist()
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+        # Send the data to the /predict endpoint
+        url = os.getenv("PREDICT_API_URL")
+        if url is None:
+            st.error("PREDICT_API_URL environment variable is not set.")
+            return
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+        try:
+            response = requests.post(url, json={"data": features})
+            response.raise_for_status()  # Raise an error for bad status codes
+            predictions = response.json().get("predictions")
+            st.write("Predictions:")
+            st.write(predictions)
+        except requests.exceptions.RequestException as e:
+            st.error(f"Request failed: {e}")
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
-
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+if __name__ == "__main__":
+    main()
