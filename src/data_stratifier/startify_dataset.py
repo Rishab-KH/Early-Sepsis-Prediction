@@ -94,8 +94,10 @@ def save_dataframes_to_psv(train_df, batch_dfs, client_df, output_dir):
 
 if __name__ == "__main__":
 
-
-    folder_name = sys.argv[1]
+    if len(sys.argv) == 1:
+        folder_name = "/Users/sharanyasenthil/Downloads/psv_dir"
+    else: 
+        folder_name = sys.argv[1]
     
     combined_dataframe = read_and_concat_psv_files(folder_name)
     
