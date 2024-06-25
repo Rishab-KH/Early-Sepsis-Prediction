@@ -8,6 +8,11 @@ Prediction Aim: Utilize advanced ML models to predict the presence of sepsis in 
 
 Operational Excellence: Ensure the continuous monitoring of the ML pipeline to uphold model accuracy, reliability, and integration within clinical workflows.
 
+## Architecture
+
+![sample](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/56828752-4285-4ec7-9cd9-f9c5e0ab9e60)
+
+
 ## Important Links
 
 - [Cloud Composer (Production Environment)](https://e954b7c017dd452780d2df44a8d5f5a2-dot-us-central1.composer.googleusercontent.com/home) Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu) to get access
