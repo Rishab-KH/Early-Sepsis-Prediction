@@ -7,20 +7,19 @@ import requests
 def main():
     st.title("PSV File Upload and Prediction")
 
-    # Allow the user to upload a PSV file
+    ## Asking the user to upload a file in the form of PSV file
     uploaded_file = st.file_uploader("Choose a PSV file", type="psv")
 
     if uploaded_file is not None:
-        # Read the file as a dataframe
+        ## Reading the file in the form of dataframe and the delimiter 'pipe'
         df = pd.read_csv(uploaded_file, delimiter='|')
         st.write("File Content:")
         st.write(df)
 
-        # Prepare the data for prediction
         features = df.replace([np.nan, np.inf, -np.inf], None).values.tolist()
 
         # Send the data to the /predict endpoint
-        #url = os.getenv("PREDICT_API_URL")
+        #url = os.getenv("PREDICT_API_URL") ## commented since url is given directly
         url = "https://sepsis-predict-3wcd2ryf5q-uc.a.run.app/predict"
         if url is None:
             st.error("PREDICT_API_URL environment variable is not set.")
