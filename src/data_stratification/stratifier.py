@@ -47,3 +47,8 @@ if __name__ == "__main__":
     # Read and concatenate all PSV files
     combined_dataframe = read_and_concat_psv_files(folder_name)
     
+    # Create the count DataFrame
+    count_dataframe = create_count_df(combined_dataframe)
+    
+    # Print the count DataFrame (or perform any other operations you need)
+    print(count_dataframe)
