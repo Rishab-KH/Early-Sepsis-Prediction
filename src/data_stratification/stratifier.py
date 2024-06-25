@@ -84,6 +84,13 @@ def create_dataframes_for_groups(combined_df, pid_groups):
     return train_df, batch_dfs, client_df
 
 
+def save_dataframes_to_psv(train_df, batch_dfs, client_df, output_dir):
+    train_df.to_csv(os.path.join(output_dir, 'train_df.psv'), sep='|', index=False)
+    for i, batch_df in enumerate(batch_dfs, 1):
+        batch_df.to_csv(os.path.join(output_dir, f'batch_df_{i}.psv'), sep='|', index=False)
+    client_df.to_csv(os.path.join(output_dir, 'client_df.psv'), sep='|', index=False)
+
+
 if __name__ == "__main__":
     # Check if the folder name is provided as an argument
     if len(sys.argv) != 2:
