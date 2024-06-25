@@ -92,13 +92,12 @@ def save_dataframes_to_psv(train_df, batch_dfs, client_df, output_dir):
 
 
 if __name__ == "__main__":
-    # Check if the folder name is provided as an argument
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <folder_name>")
-        sys.exit(1)
-    
-    # Get the folder name from the command-line arguments
-    folder_name = sys.argv[1]
+
+    if len(sys.argv) == 1:
+        folder_name = "/Users/sharanyasenthil/Downloads/psv_dir"
+    else: 
+        # Get the folder name from the command-line arguments
+        folder_name = sys.argv[1]
     
     # Read and concatenate all PSV files
     combined_dataframe = read_and_concat_psv_files(folder_name)
@@ -124,6 +123,6 @@ if __name__ == "__main__":
         print(f"batch_df_{i} shape: {batch_df.shape}")
     print(f"client_df shape: {client_df.shape}")
 
-    save_dataframes_to_psv(train_df, batch_dfs, client_df, output_dir="/Users/sharanyasenthil/Downloads/psv_dir")
+    save_dataframes_to_psv(train_df, batch_dfs, client_df, output_dir=folder_name)
 
 
