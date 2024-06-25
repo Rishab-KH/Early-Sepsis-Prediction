@@ -38,7 +38,7 @@ jobs:
         gcloud run deploy sepsis-predict \
           --image us-central1-docker.pkg.dev/$GOOGLE_PROJECT/sepsis-mlops-repo/serve_pipeline:latest \
           --region us-central1 \
-          --memory 512Mi \
+          --memory 2Gi \
           --allow-unauthenticated \
           --port 8080 \
           --tag prod
