@@ -79,4 +79,7 @@ def create_dataframes_for_groups(combined_df, pid_groups):
     batch_df = combined_df[combined_df['PID'].isin(pid_groups[0.2])]
     client_df = combined_df[combined_df['PID'].isin(pid_groups[0.1])]
     
-    return train_df, batch_df, client_df
+    # Split batch_df equally into three DataFrames
+    batch_dfs = np.array_split(batch_df, 3)
+    
+    return train_df, batch_dfs, client_df
