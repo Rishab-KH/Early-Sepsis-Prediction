@@ -34,8 +34,25 @@ def create_count_df(combined_df):
     count_df['count_of_1'] = count_df['count_of_1'].astype(int)
     
     count_df = count_df.sort_values(by='count_of_1', ascending=False)
+
+    count_df['cumulative_count_of_1'] = count_df['count_of_1'].cumsum()
     
     return count_df
+
+def find_pid_crossing_threshold(count_df, total_count_of_1, threshold=0.7):
+    
+    total_count_of_1 = count_dataframe['count_of_1'].sum()
+
+    # Calculate the cumulative sum of count_of_1
+    count_df['cumulative_count_of_1'] = count_df['count_of_1'].cumsum()
+    
+    # Calculate the threshold value
+    threshold_value = total_count_of_1 * threshold
+    
+    # Find the first PID where the cumulative sum crosses the threshold
+    pid_crossing_threshold = count_df[count_df['cumulative_count_of_1'] >= threshold_value].iloc[0]['PID']
+    
+    return pid_crossing_threshold
 
 if __name__ == "__main__":
     # Check if the folder name is provided as an argument
@@ -54,8 +71,4 @@ if __name__ == "__main__":
     
     # Print the count DataFrame (or perform any other operations you need)
     print(count_dataframe)
-
-    total_count_of_1 = count_dataframe['count_of_1'].sum()
-    
-    print(total_count_of_1)
     
