@@ -104,5 +104,12 @@ if __name__ == "__main__":
     for threshold, pids in pid_groups.items():
         print(f"Number of PIDs that fall within {threshold*100}% of total count of 1s: {len(pids)}")
 
-        
+    # Create train_df, batch_df, and client_df
+    train_df, batch_df, client_df = create_dataframes_for_groups(combined_dataframe, pid_groups)
+    
+    # Print the shapes of the resulting dataframes
+    print(f"train_df shape: {train_df.shape}")
+    print(f"batch_df shape: {batch_df.shape}")
+    print(f"client_df shape: {client_df.shape}")
+    
 
