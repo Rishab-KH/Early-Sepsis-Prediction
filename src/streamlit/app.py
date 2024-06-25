@@ -15,6 +15,7 @@ def main():
     # Title and information
     st.title("EMR Sepsis Prediction System")
     st.markdown("<br>", unsafe_allow_html=True)  # Add space between title and info
+    st.info('This application predicts if a patient has sepsis or not from the patient record', icon="ℹ️")
     
 if __name__ == "__main__":
     main()
