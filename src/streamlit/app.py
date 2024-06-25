@@ -19,6 +19,7 @@ def main():
     
     # Sidebar for file upload
     st.sidebar.header("Upload Patient Record")
-   
+    uploaded_file = st.sidebar.file_uploader("Upload a patient record (PSV format)", type="psv")
+
 if __name__ == "__main__":
     main()
