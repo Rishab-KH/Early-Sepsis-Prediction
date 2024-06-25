@@ -397,7 +397,10 @@ All of our resources are in us-central1 location (except Vertex AI nodes run on 
 | Cloud Storage       | $0.26 |
 | Miscellaneous       | $0.18 |
 
+Total Daily cost: $22.43
 
+Yearly Serving Cost: $8186.95 (with development machine)
+Yearly Serving Cost: $6876.60 (without development machine)
 
 ## Our Team
 
