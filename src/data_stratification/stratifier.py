@@ -39,20 +39,34 @@ def create_count_df(combined_df):
     
     return count_df
 
-def find_pid_crossing_threshold(count_df, total_count_of_1, threshold=0.7):
-    
-    total_count_of_1 = count_dataframe['count_of_1'].sum()
 
-    # Calculate the cumulative sum of count_of_1
-    count_df['cumulative_count_of_1'] = count_df['count_of_1'].cumsum()
+def find_pids_crossing_threshold(count_df, thresholds=[0.7, 0.2, 0.1]):
+    # Sort count_df by count_of_1 in descending order
+    count_df = count_df.sort_values(by='count_of_1', ascending=False)
     
-    # Calculate the threshold value
-    threshold_value = total_count_of_1 * threshold
+    # Initialize a dictionary to store the PIDs for each threshold
+    pid_groups = {threshold: [] for threshold in thresholds}
     
-    # Find the first PID where the cumulative sum crosses the threshold
-    pid_crossing_threshold = count_df[count_df['cumulative_count_of_1'] >= threshold_value].iloc[0]['PID']
+    total_count_of_1 = count_df['count_of_1'].sum()
+    cumulative_count = 0
     
-    return pid_crossing_threshold
+    # Iterate through the DataFrame and find PIDs for each threshold
+    for threshold in thresholds:
+        threshold_value = total_count_of_1 * threshold
+        current_group = []
+        
+        for index, row in count_df.iterrows():
+            cumulative_count += row['count_of_1']
+            current_group.append(row['PID'])
+            print(cumulative_count, total_count_of_1, threshold_value)
+            
+            if cumulative_count >= threshold_value:
+                pid_groups[threshold] = current_group
+                cumulative_count = 0
+                break
+    
+    return pid_groups
+
 
 if __name__ == "__main__":
     # Check if the folder name is provided as an argument
@@ -72,3 +86,8 @@ if __name__ == "__main__":
     # Print the count DataFrame (or perform any other operations you need)
     print(count_dataframe)
     
+    pid_groups = find_pids_crossing_threshold(count_dataframe, thresholds=[0.7, 0.2, 0.1])
+
+     # Print the PIDs that fall within each threshold group
+    for threshold, pids in pid_groups.items():
+        print(f"PIDs that fall within {threshold*100}% of total count of 1s: {pids}")
