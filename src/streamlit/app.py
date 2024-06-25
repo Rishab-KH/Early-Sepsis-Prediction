@@ -12,6 +12,8 @@ streamlit_uri = os.getenv('streamlit_uri')
 
 def main():
     st.set_page_config(page_title="EMR Sepsis Prediction System", layout="wide")
+    # Title and information
+    st.title("EMR Sepsis Prediction System")
 
 if __name__ == "__main__":
     main()
