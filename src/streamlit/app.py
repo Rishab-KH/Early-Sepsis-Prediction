@@ -9,8 +9,7 @@ load_dotenv()
 
 streamlit_uri = os.getenv('streamlit_uri')
 
-
-def main():
+def main():    
     st.set_page_config(page_title="EMR Sepsis Prediction System", layout="wide")
     # Title and information
     st.title("EMR Sepsis Prediction System")
@@ -41,7 +40,7 @@ def main():
             response = requests.post(url, json={"data": features, "columns": col_names})
             response.raise_for_status()  # Raise an error for bad status codes
             predictions = response.json().get("predictions")
-            
+
             st.subheader("Predictions:")
             st.table(predictions)  # Use st.table for better visualization
             
