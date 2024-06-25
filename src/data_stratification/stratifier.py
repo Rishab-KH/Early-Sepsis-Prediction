@@ -21,7 +21,19 @@ def read_and_concat_psv_files(folder):
     combined_df = pd.concat(all_dataframes, ignore_index=True)
     return combined_df
 
-
+def create_count_df(combined_df):
+    # Count occurrences of SepsisLabel for each PID
+    count_0 = combined_df[combined_df['SepsisLabel'] == 0].groupby('PID').size().reset_index(name='count_of_0')
+    count_1 = combined_df[combined_df['SepsisLabel'] == 1].groupby('PID').size().reset_index(name='count_of_1')
+    
+    # Merge the counts
+    count_df = pd.merge(count_0, count_1, on='PID', how='outer').fillna(0)
+    
+    # Ensure columns are integers
+    count_df['count_of_0'] = count_df['count_of_0'].astype(int)
+    count_df['count_of_1'] = count_df['count_of_1'].astype(int)
+    
+    return count_df
 
 if __name__ == "__main__":
     # Check if the folder name is provided as an argument
@@ -34,5 +46,4 @@ if __name__ == "__main__":
     
     # Read and concatenate all PSV files
     combined_dataframe = read_and_concat_psv_files(folder_name)
-
-    print(combined_dataframe)
+    
