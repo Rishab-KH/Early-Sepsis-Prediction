@@ -30,5 +30,9 @@ def create_count_df(combined_df):
     # Merge the counts
     count_df = pd.merge(count_0, count_1, on='PID', how='outer').fillna(0)
     
+    # Ensure columns are integers
+    count_df['count_of_0'] = count_df['count_of_0'].astype(int)
+    count_df['count_of_1'] = count_df['count_of_1'].astype(int)
+    
     
     return count_df
