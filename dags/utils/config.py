@@ -12,6 +12,9 @@ output_bucket = 'sepsis-prediction-outputs'
 # data directory
 DATA_DIR = 'gs://sepsis-prediction-mlops/data/modified_data/finalDataset-000000000000.csv'
 
+#predict directory
+PREDICT_DIR = "gs://sepsis-prediction-mlops/data/modified_data/prod_data/ProdDataset.csv"
+
 # name of the preprocessed data pickle file
 PREPROCESSED_DATA='preprocessed_data.pickle'
 
@@ -41,3 +44,4 @@ TRACKING_URI = "https://mlflow-cloud-run-3wcd2ryf5q-uc.a.run.app"
 
 # artifact storage name
 artifact_base_path = f'model-run-{datetime.now().strftime("%Y%m%d-%H%M%S")}'
+

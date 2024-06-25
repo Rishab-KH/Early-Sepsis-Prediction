@@ -16,6 +16,7 @@ ENV AIP_HEALTH_ROUTE=/ping
 ENV AIP_PREDICT_ROUTE=/predict
 ENV AIP_HTTP_PORT=8080
 ENV MODEL_MONITORING_TABLE_ID=leafy-sunrise-425218-h4.model_monitoring.model_monitoring_prediction
+ENV PREDICT_PATH=data/modified_data/prod_data/archived_ProdDataset.csv
 
 # 5. Sets up the entry point to invoke the trainer.
 ENTRYPOINT ["python", "predict.py"]
