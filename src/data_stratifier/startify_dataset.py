@@ -37,5 +37,19 @@ def create_count_df(combined_df):
     count_df = count_df.sort_values(by='count_of_1', ascending=False)
     
     count_df['cumulative_count_of_1'] = count_df['count_of_1'].cumsum()
-    
+
     return count_df
+
+# find pids within each threshold group
+def find_pids_crossing_threshold(count_df, thresholds=[0.7, 0.2, 0.1]):
+    
+    # Sort count_df by count_of_1 in descending order
+    count_df = count_df.sort_values(by='count_of_1', ascending=False)
+    
+    # Initialize a dictionary to store the PIDs for each threshold
+    pid_groups = {threshold: [] for threshold in thresholds}
+    
+    total_count_of_1 = count_df['count_of_1'].sum()
+    cumulative_count = 0
+    
+    return pid_groups
