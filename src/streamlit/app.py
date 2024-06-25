@@ -31,6 +31,12 @@ def main():
         col_names = list(df.columns)
         features = df.replace([np.nan, np.inf, -np.inf], None).values.tolist()
 
+        # Send the data to the /predict endpoint
+        url = f"{streamlit_uri}/predict"
+        if url is None:
+            st.error("PREDICT_API_URL environment variable is not set.", icon="🔥")
+            return
+
         
 if __name__ == "__main__":
     main()
