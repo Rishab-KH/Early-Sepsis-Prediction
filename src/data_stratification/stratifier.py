@@ -33,6 +33,8 @@ def create_count_df(combined_df):
     count_df['count_of_0'] = count_df['count_of_0'].astype(int)
     count_df['count_of_1'] = count_df['count_of_1'].astype(int)
     
+    count_df = count_df.sort_values(by='count_of_1', ascending=False)
+    
     return count_df
 
 if __name__ == "__main__":
