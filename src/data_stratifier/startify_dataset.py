@@ -53,7 +53,7 @@ def find_pids_crossing_threshold(count_df, thresholds=[0.7, 0.2, 0.1]):
     cumulative_count = 0
     
     i = 0
-
+    
     threshold_value = total_count_of_1 * thresholds[i]
 
     for index, row in count_df.iterrows():
@@ -68,4 +68,7 @@ def find_pids_crossing_threshold(count_df, thresholds=[0.7, 0.2, 0.1]):
             i += 1
             threshold_value = total_count_of_1 * thresholds[i]
 
+    if current_group:
+        pid_groups[thresholds[i]] = current_group
+        
     return pid_groups
