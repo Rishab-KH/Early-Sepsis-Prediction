@@ -24,6 +24,7 @@ def main():
     if uploaded_file is not None:
         ## Reading the file in the form of dataframe and the delimiter 'pipe'
         df = pd.read_csv(uploaded_file, delimiter='|')
+        st.subheader("File Content:")
         
         
 if __name__ == "__main__":
