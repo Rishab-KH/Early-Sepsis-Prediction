@@ -36,7 +36,23 @@ def main():
         if url is None:
             st.error("PREDICT_API_URL environment variable is not set.", icon="🔥")
             return
+        
+        try:
+            response = requests.post(url, json={"data": features, "columns": col_names})
+            response.raise_for_status()  # Raise an error for bad status codes
+            predictions = response.json().get("predictions")
+            
+            st.subheader("Predictions:")
+            st.table(predictions)  # Use st.table for better visualization
+            
+            # Check if any prediction contains "1"
+            if any(pred == 1 for pred in predictions):
+                st.error("Patient has sepsis", icon="🚨")
+            else:
+                st.success("Patient doesn't have sepsis", icon="✅")
 
+        except requests.exceptions.RequestException as e:
+            st.error(f"Request failed: {e}", icon="🔥")
         
 if __name__ == "__main__":
     main()
