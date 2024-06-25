@@ -383,6 +383,22 @@ The above Gantt chart highlights significant improvement in speeds of processing
 
 By leveraging Google Cloud's powerful data warehousing and storage solutions, we have significantly reduced the time and resources required to process large-scale datasets. This optimized approach not only speeds up the data processing workflow but also enhances the scalability and manageability of our sepsis prediction project.
 
+## Cost Analysis
+
+All of our resources are in us-central1 location (except Vertex AI nodes run on us-east1). Below is a breakdown of cost of each resource (Daily cost)
+
+| Service | Cost    |
+|----------|---------|
+| Cloud Composer       | $16.92 |
+| Compute Engine       | $3.59 |
+| Networking       | $0.67 |
+| Cloud Run       | $0.52 |
+| Cloud SQL       | $0.29 |
+| Cloud Storage       | $0.26 |
+| Miscellaneous       | $0.18 |
+
+
+
 ## Our Team
 
 [Sharanya Senthil](mailto:senthil.sh@northeastern.edu)
