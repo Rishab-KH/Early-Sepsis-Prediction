@@ -14,6 +14,7 @@ def main():
     st.set_page_config(page_title="EMR Sepsis Prediction System", layout="wide")
     # Title and information
     st.title("EMR Sepsis Prediction System")
-
+    st.markdown("<br>", unsafe_allow_html=True)  # Add space between title and info
+    
 if __name__ == "__main__":
     main()
