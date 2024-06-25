@@ -91,3 +91,31 @@ def save_dataframes_to_psv(train_df, batch_dfs, client_df, output_dir):
         batch_df.to_csv(os.path.join(output_dir, f'batch_df_{i}.psv'), sep='|', index=False)
     client_df.to_csv(os.path.join(output_dir, 'client_df.psv'), sep='|', index=False)
 
+
+if __name__ == "__main__":
+
+
+    folder_name = sys.argv[1]
+    
+    combined_dataframe = read_and_concat_psv_files(folder_name)
+    
+    count_dataframe = create_count_df(combined_dataframe)
+    
+    pid_groups = find_pids_crossing_threshold(count_dataframe, thresholds=[0.7, 0.2, 0.1])
+
+     # Print the PIDs that fall within each threshold group
+    for threshold, pids in pid_groups.items():
+        print(f"Number of PIDs that fall within {threshold*100}% of total count of 1s: {len(pids)}")
+
+    # Create train_df, batch_df, and client_df
+    train_df, batch_dfs, client_df = create_dataframes_for_groups(combined_dataframe, pid_groups)
+    
+    # Print the shapes of the resulting dataframes
+    print(f"train_df shape: {train_df.shape}")
+    for i, batch_df in enumerate(batch_dfs, 1):
+        print(f"batch_df_{i} shape: {batch_df.shape}")
+    print(f"client_df shape: {client_df.shape}")
+
+    save_dataframes_to_psv(train_df, batch_dfs, client_df, output_dir=folder_name)
+
+
