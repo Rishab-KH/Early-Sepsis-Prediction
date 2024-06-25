@@ -65,11 +65,19 @@ def find_pids_crossing_threshold(count_df, thresholds=[0.7, 0.2, 0.1]):
             cumulative_count = 0
             i += 1
             threshold_value = total_count_of_1 * thresholds[i]
-            
+
     if current_group:
         pid_groups[thresholds[i]] = current_group
     
     return pid_groups
+
+
+def create_dataframes_for_groups(combined_df, pid_groups):
+    train_df = combined_df[combined_df['PID'].isin(pid_groups[0.7])]
+    batch_df = combined_df[combined_df['PID'].isin(pid_groups[0.2])]
+    client_df = combined_df[combined_df['PID'].isin(pid_groups[0.1])]
+    
+    return train_df, batch_df, client_df
 
 
 if __name__ == "__main__":
@@ -95,3 +103,4 @@ if __name__ == "__main__":
      # Print the PIDs that fall within each threshold group
     for threshold, pids in pid_groups.items():
         print(f"Number of PIDs that fall within {threshold*100}% of total count of 1s: {len(pids)}")
+
