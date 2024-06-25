@@ -27,4 +27,8 @@ def create_count_df(combined_df):
     count_0 = combined_df[combined_df['SepsisLabel'] == 0].groupby('PID').size().reset_index(name='count_of_0')
     count_1 = combined_df[combined_df['SepsisLabel'] == 1].groupby('PID').size().reset_index(name='count_of_1')
 
-
+    # Merge the counts
+    count_df = pd.merge(count_0, count_1, on='PID', how='outer').fillna(0)
+    
+    
+    return count_df
