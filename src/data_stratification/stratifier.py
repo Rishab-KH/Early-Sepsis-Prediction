@@ -124,4 +124,6 @@ if __name__ == "__main__":
         print(f"batch_df_{i} shape: {batch_df.shape}")
     print(f"client_df shape: {client_df.shape}")
 
+    save_dataframes_to_psv(train_df, batch_dfs, client_df, output_dir="/Users/sharanyasenthil/Downloads/psv_dir")
+
 
