@@ -14,7 +14,7 @@ Operational Excellence: Ensure the continuous monitoring of the ML pipeline to u
 - [Airflow hosted on Compute Engine (Development Environment)](http://35.193.213.112:8080/home)
 - [GCS Bucket](https://console.cloud.google.com/storage/browser/sepsis-prediction-mlops/data/processed_data)
 - [MLFlow](https://mlflow-cloud-run-3wcd2ryf5q-uc.a.run.app/)
-- [Streamlit](https://sepsis-streamlit-3wcd2ryf5q-uc.a.run.app/) NOTE: Streamlit app is still under development
+- [Streamlit](https://sepsis-streamlit-3wcd2ryf5q-uc.a.run.app/)
 - [Flask App](https://sepsis-predict-3wcd2ryf5q-uc.a.run.app/ping)
 
 ## DATASET 

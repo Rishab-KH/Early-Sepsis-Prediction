@@ -22,7 +22,7 @@ def main():
     uploaded_file = st.sidebar.file_uploader("Upload a patient record (PSV format)", type="psv")
 
     if uploaded_file is not None:
-        # Read the file as a dataframe
+        ## Reading the file in the form of dataframe and the delimiter 'pipe'
         df = pd.read_csv(uploaded_file, delimiter='|')
         
         st.subheader("File Content:")
