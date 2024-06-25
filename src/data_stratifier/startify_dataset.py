@@ -72,3 +72,11 @@ def find_pids_crossing_threshold(count_df, thresholds=[0.7, 0.2, 0.1]):
         pid_groups[thresholds[i]] = current_group
 
     return pid_groups
+
+
+def create_dataframes_for_groups(combined_df, pid_groups):
+    train_df = combined_df[combined_df['PID'].isin(pid_groups[0.7])]
+    batch_df = combined_df[combined_df['PID'].isin(pid_groups[0.2])]
+    client_df = combined_df[combined_df['PID'].isin(pid_groups[0.1])]
+    
+    return train_df, batch_df, client_df
