@@ -17,5 +17,8 @@ def main():
     st.markdown("<br>", unsafe_allow_html=True)  # Add space between title and info
     st.info('This application predicts if a patient has sepsis or not from the patient record', icon="ℹ️")
     
+    # Sidebar for file upload
+    st.sidebar.header("Upload Patient Record")
+   
 if __name__ == "__main__":
     main()
