@@ -50,20 +50,21 @@ def find_pids_crossing_threshold(count_df, thresholds=[0.7, 0.2, 0.1]):
     total_count_of_1 = count_df['count_of_1'].sum()
     cumulative_count = 0
     
-    # Iterate through the DataFrame and find PIDs for each threshold
-    for threshold in thresholds:
-        threshold_value = total_count_of_1 * threshold
-        current_group = []
+    i = 0
+    current_group = []
+    threshold_value = total_count_of_1 * thresholds[i]
+
+    for index, row in count_df.iterrows():
+        cumulative_count += row['count_of_1']
+        current_group.append(row['PID'])
+        # print(cumulative_count, total_count_of_1, threshold_value)
         
-        for index, row in count_df.iterrows():
-            cumulative_count += row['count_of_1']
-            current_group.append(row['PID'])
-            print(cumulative_count, total_count_of_1, threshold_value)
-            
-            if cumulative_count >= threshold_value:
-                pid_groups[threshold] = current_group
-                cumulative_count = 0
-                break
+        if cumulative_count >= threshold_value:
+            pid_groups[thresholds[i]] = current_group
+            current_group = []
+            cumulative_count = 0
+            i += 1
+            threshold_value = total_count_of_1 * thresholds[i]
     
     return pid_groups
 
