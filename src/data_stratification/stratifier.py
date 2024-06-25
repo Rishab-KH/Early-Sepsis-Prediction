@@ -1,5 +1,6 @@
 import sys
 import os
+import numpy as np
 import pandas as pd
 
 def read_and_concat_psv_files(folder):
@@ -77,7 +78,10 @@ def create_dataframes_for_groups(combined_df, pid_groups):
     batch_df = combined_df[combined_df['PID'].isin(pid_groups[0.2])]
     client_df = combined_df[combined_df['PID'].isin(pid_groups[0.1])]
     
-    return train_df, batch_df, client_df
+    # Split batch_df equally into three DataFrames
+    batch_dfs = np.array_split(batch_df, 3)
+    
+    return train_df, batch_dfs, client_df
 
 
 if __name__ == "__main__":
@@ -105,11 +109,12 @@ if __name__ == "__main__":
         print(f"Number of PIDs that fall within {threshold*100}% of total count of 1s: {len(pids)}")
 
     # Create train_df, batch_df, and client_df
-    train_df, batch_df, client_df = create_dataframes_for_groups(combined_dataframe, pid_groups)
+    train_df, batch_dfs, client_df = create_dataframes_for_groups(combined_dataframe, pid_groups)
     
     # Print the shapes of the resulting dataframes
     print(f"train_df shape: {train_df.shape}")
-    print(f"batch_df shape: {batch_df.shape}")
+    for i, batch_df in enumerate(batch_dfs, 1):
+        print(f"batch_df_{i} shape: {batch_df.shape}")
     print(f"client_df shape: {client_df.shape}")
-    
+
 
