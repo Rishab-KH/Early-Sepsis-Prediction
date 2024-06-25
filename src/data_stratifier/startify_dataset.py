@@ -36,4 +36,6 @@ def create_count_df(combined_df):
     
     count_df = count_df.sort_values(by='count_of_1', ascending=False)
     
+    count_df['cumulative_count_of_1'] = count_df['count_of_1'].cumsum()
+    
     return count_df
