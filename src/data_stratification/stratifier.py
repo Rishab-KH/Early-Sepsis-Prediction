@@ -54,3 +54,8 @@ if __name__ == "__main__":
     
     # Print the count DataFrame (or perform any other operations you need)
     print(count_dataframe)
+
+    total_count_of_1 = count_dataframe['count_of_1'].sum()
+    
+    print(total_count_of_1)
+    
