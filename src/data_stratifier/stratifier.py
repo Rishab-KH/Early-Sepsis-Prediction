@@ -96,17 +96,11 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         folder_name = "/Users/sharanyasenthil/Downloads/psv_dir"
     else: 
-        # Get the folder name from the command-line arguments
         folder_name = sys.argv[1]
     
-    # Read and concatenate all PSV files
     combined_dataframe = read_and_concat_psv_files(folder_name)
     
-    # Create the count DataFrame
     count_dataframe = create_count_df(combined_dataframe)
-    
-    # Print the count DataFrame (or perform any other operations you need)
-    print(count_dataframe)
     
     pid_groups = find_pids_crossing_threshold(count_dataframe, thresholds=[0.7, 0.2, 0.1])
 
