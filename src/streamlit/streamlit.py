@@ -26,12 +26,14 @@ def main():
         df = pd.read_csv(uploaded_file, delimiter='|')
         y = df["SepsisLabel"]
         df =  df.drop(columns = "SepsisLabel")
-        #df['Patient_ID'] = df['Patient_ID'].astype(str) # Convert patient id to str
+        filename = uploaded_file.name
+        pid = filename[2:-4]
+        df['Patient_ID'] = pid
  
         st.subheader("File Content:")
         st.dataframe(df)  # Use st.dataframe for better visualization
         
-        df["SepsisLabel"] = y
+        #df["SepsisLabel"] = y
         # Prepare the data for prediction and column names
         col_names = list(df.columns)
         features = df.replace([np.nan, np.inf, -np.inf], None).values.tolist()
