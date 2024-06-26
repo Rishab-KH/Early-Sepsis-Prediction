@@ -145,15 +145,15 @@ In DAG-1, each task is carefully logged and stored locally to help developers tr
 
 DAG-1 comprises of many distinct tasks, each designed to enhance the quality and usability of the data. The airflow task are:
 
-1) .PSV TO .CSV - This task converts individual patient files from .PSV files to .CSV format using the Google BigQuery operator. The resulting .CSV files are then saved back to GCP.
+1) .PSV TO .CSV - This task involves converting individual patient files from the Pipe Separated Values (.PSV) format to the Comma Separated Values (.CSV) format. The conversion process utilizes the Google BigQuery operator to handle the data transformation efficiently. Once converted, the resulting .CSV files are saved back to Google Cloud Platform (GCP), ensuring they are accessible and compatible with a wide range of data analysis tools and workflows.
 
-2) IF Schema Exists - This task uses an IF statement to check whether schema for validation exists in our Google Cloud Bucket or not. The workflow further proceeds only if schema exists. 
+2) IF Schema Exists - This task employs an IF statement to verify the existence of a validation schema in our Google Cloud Bucket. If the schema is found, the workflow proceeds to the next steps in the data processing pipeline. If the schema is not found, the workflow is halted, ensuring that data validation cannot occur without the necessary schema, thereby maintaining data integrity and consistency.
 
-3) SCHEMA GENERATION - The input for this task is the merged .CSV file generated from the previous task. If the validation schema doesn't exists, This task constructs a schema and compiles statistics, which are subsequently used for data validation to prevent model crashes caused by incorrect data entry. The schema includes column names and data types, while the statistics encompass null count, minimum, maximum, mean, median, and standard deviation for each column. This schema is then produced in a .JSON file.
+3) SCHEMA GENERATION - The input for this task is the merged .CSV file generated from the previous task. If the validation schema does not exist, this task constructs a schema and compiles essential statistics, which are subsequently used for data validation to prevent model crashes caused by incorrect data entry. The schema includes column names and data types, while the statistics encompass null count, minimum, maximum, mean, median, and standard deviation for each column. This comprehensive schema is then produced in a .JSON file, ensuring that the data conforms to expected formats and ranges before further processing.
 
 4) PUSH .JSON TO GCP - This task pushes .JSON schema file from the previous process to GCP. 
 
-5) PULLING .JSON FOR DATA VALIDATION - This task retrieves the .JSON file from GCP for data validation. The validation is performed according to the schema defined in the previous process. The outcome of this validation is a boolean value: True or False. If each data point passes schema  and statastics validation it retuens True, the process proceeds; otherwise, it halts the further processing of DAG-1 thereby preventing the pipeline from crashing.
+5) PULLING .JSON FOR DATA VALIDATION - This task retrieves the .JSON file from GCP for data validation. The validation is performed according to the schema defined in the previous process, which includes column names, data types, and statistical parameters. The outcome of this validation is a boolean value: True or False. If each data point passes schema and statistics validation, it returns True, allowing the process to proceed. If the validation fails, it returns False, halting further processing of DAG-1. This mechanism prevents the pipeline from crashing due to incorrect data entry, ensuring data quality and consistency before moving to subsequent stages.
 
 6) PREPARING EMAIL CONTENT - This task creates an email notifying the developer that the data validation has failed and the workflow has stopped working to avoid model from failing. Data validation is said to fail when the data does not satisfy the pre-defined schema and data distribution. 
 
@@ -163,7 +163,7 @@ DAG-1 comprises of many distinct tasks, each designed to enhance the quality and
 
 9) PRE - PROCESSING - After the train-test split, X-train and X-test undergo preprocessing. Two separate processes are created: one for preprocessing the training set and another for preprocessing the test set.
 
-10) SCALING TRAIN AND TEST SETS - In this task, the pre-processed training and test datasets are scaled. Separate procedures are established: one for scaling the training set and another for scaling the test set.
+10) SCALING TRAIN AND TEST SETS - In this task, the pre-processed training and test datasets are scaled to standardize the data, which is crucial for many machine learning algorithms. Separate procedures are established to handle the scaling of the training set and the test set independently. The training set scaling involves fitting the scaler to the training data to learn the necessary parameters, such as mean and standard deviation. These parameters are then applied to transform the training data. For the test set, the previously learned parameters from the training set scaler are used to transform the test data, ensuring consistency in data scaling. This separation prevents data leakage and ensures that the model is evaluated on properly scaled and unbiased test data.
 
 11) PUSHING FILES TO GCP - Five distinct tasks are established to upload X_train, X_test, Y_train, Y_test, and the scaler to GCP. These files are uploaded in .pkl format for efficiency.
 
