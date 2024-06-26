@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'dags/**'
-      - '.github/workflows/python-tests.yaml'
+      - '.github/workflows/python-tests.yml'
 
 jobs:
   build:
