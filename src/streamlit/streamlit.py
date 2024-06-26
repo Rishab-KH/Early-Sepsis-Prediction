@@ -31,8 +31,8 @@ def main():
         pid = filename[2:-4]
         df['Patient_ID'] = pid
  
-        #st.subheader("File Content:")
-        #st.dataframe(df)  # Use st.dataframe for better visualization
+        st.subheader("File Content:")
+        st.dataframe(df)  # Use st.dataframe for better visualization
         
         # Prepare the data for prediction and column names
         col_names = list(df.columns)
