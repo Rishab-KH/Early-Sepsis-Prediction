@@ -306,8 +306,7 @@ The DAG-3 of our pipeline is a scheduled DAG (for example: weekly) which is resp
 
 Our model can be served as an Flask API (backend) or from the frontend (Streamlit, which uses the Flask API). We track metrics like latency etc when we are serving. We have another DAG which is responsible to track if there is any data drift in the data that the users provide while using our application.
 
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f826b1ec-1e29-4055-8b2a-e6a501352c0d)
-
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/61621049/cf1f0a3e-6019-4c2b-a83b-747bb0824a36)
 
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/cd55b1db-4726-4263-9aa1-f7526ff87227)
 
