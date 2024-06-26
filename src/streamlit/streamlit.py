@@ -30,7 +30,7 @@ def main():
         pid = filename[2:-4]
         df['Patient_ID'] = pid
  
-        st.subheader("File Content:")
+        #st.subheader("File Content:")
         #st.dataframe(df)  # Use st.dataframe for better visualization
         
         #df["SepsisLabel"] = y
