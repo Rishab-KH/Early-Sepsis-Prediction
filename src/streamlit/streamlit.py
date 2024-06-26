@@ -44,7 +44,7 @@ def main():
             predictions = response.json().get("predictions")
             
             st.subheader("Predictions:")
-            st.table(predictions)  # Use st.table for better visualization
+            # st.table(predictions)  # Use st.table for better visualization
             
             # Check if any prediction contains "1"
             if any(pred == 1 for pred in predictions):
