@@ -182,8 +182,7 @@ def data_preprocess_pipeline(features):
             df[col] = np.log1p(df[col])
 
 
-    # One-hot encode the 'Gender' column
-    
+    # One-hot encode the 'Gender' column  
     df['gender'] = df['Gender'].replace({1: 'M', 0: 'F'}).apply(lambda x: x if x in ['M', 'F'] else np.nan)
     
     
