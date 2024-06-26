@@ -11,11 +11,11 @@ from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesyste
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
-import dags.utils.config as config
-from dags.utils.helper import clean_pickle_files, revert_merge_on_task_fail
-from dags.utils.data_preprocessing import data_preprocess_pipeline 
-from dags.utils.data_split_utils import train_test_split
-from dags.utils.data_scale_utils import scale_train_data, scale_test_data
+import utils.config as config
+from utils.helper import clean_pickle_files, revert_merge_on_task_fail
+from utils.data_preprocessing import data_preprocess_pipeline 
+from utils.data_split_utils import train_test_split
+from utils.data_scale_utils import scale_train_data, scale_test_data
 
 def data_processing_task_group(dag, data_path, train_type):
     with TaskGroup(group_id='data_processing_and_saving', dag=dag) as paths:

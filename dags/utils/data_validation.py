@@ -2,12 +2,12 @@
 import pandas as pd
 import json
 import logging
-from dags.utils.log_config import setup_logging
+from utils.log_config import setup_logging
 import numpy as np
 import os
 
 # Custom imports
-import dags.utils.config as config
+import utils.config as config
 import gcsfs
 import json
 

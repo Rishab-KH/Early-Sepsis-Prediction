@@ -8,7 +8,7 @@ from airflow.providers.google.cloud.operators.vertex_ai.custom_job import Create
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
-import dags.utils.config as config
+import utils.config as config
 
 default_args = {
     "owner": 'airflow',
@@ -23,7 +23,7 @@ with DAG(
     schedule_interval=None,
     default_args=default_args,
     catchup=False,
-    template_searchpath=["/opt/airflow/dags/utils"]
+    template_searchpath=["/opt/airflow/dags/utils","/home/airflow/gcs/dags/utils"]
 ) as dag:
 
     create_custom_container_training_job = CreateCustomContainerTrainingJobOperator(
