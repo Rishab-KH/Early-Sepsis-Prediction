@@ -17,15 +17,20 @@
         - [Hyperparameter Tuning](#hyperparameter-tuning)
         - [SHAP Plots](#shap-plots)
 - [Machine Learning Scheduled Retraining Pipeline](#machine-learning-scheduled-retraining-pipeline)
+    - [DAG 3 : Batch Retraining](#dag-3--batch-retraining)
+- [Tracking Data Drift](#tracking-data-drift)
+    - [DAG 4 : Track Data Drift](#dag-4--track-data-drift)
 - [Computational Reports](#computational-reports)
 - [Installation (Locally)](#installation-locally)
   - [Dependencies](#dependencies)
   - [Steps](#steps)
 - [Pipeline Performance Optimization](#pipeline-performance-optimization)
-  - [Improvements with Google Cloud Platform](#improvements-with-google-cloud-platform)
+  - [Improvements with Google Cloud Platform (Computation Optimization)](#improvements-with-google-cloud-platform-computation-optimization)
+  - [Usage of Task Groups (Code Optimization)](#usage-of-task-groups-code-optimization)
+
+
 - [Cost Analysis](#cost-analysis)
 - [Our Team](#our-team)
-
 
 # Introduction 
 The Early Sepsis Prediction Project is a pioneering initiative designed to transform the landscape of sepsis management in clinical settings through the integration of advanced machine learning (ML) techniques and robust operational processes. Sepsis, a life-threatening response to infection, requires prompt and accurate detection to improve patient outcomes and reduce mortality rates. This project addresses this critical healthcare challenge by facilitating the seamless deployment and management of ML models tailored for early sepsis prediction.
@@ -117,7 +122,8 @@ Following are the prerequisites of our project:
 - Flask
 
 # GCS Bucket Folder Structure
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/5ecbd9dd-cb8d-4a2f-ad84-ef792a1d11b9)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/3a0469cf-09b1-415b-8938-3508305b562c)
+
 The [link](https://console.cloud.google.com/storage/browser/sepsis-prediction-mlops/data/processed_data) to our bucket
 
 # Data Pipeline
@@ -138,17 +144,17 @@ Patient File Description:
 
 In DAG-1, each task is carefully logged and stored locally to help developers track and identify any abnormal behavior.
 
-DAG-1 comprises 19 distinct tasks, each designed to enhance the quality and usability of the data. The airflow task are:
+DAG-1 comprises of many distinct tasks, each designed to enhance the quality and usability of the data. The airflow task are:
 
-1) .PSV TO .CSV - This task converts individual patient files from .PSV files to .CSV format using the Google BigQuery operator. The resulting .CSV files are then saved back to GCP.
+1) .PSV TO .CSV - This task involves converting individual patient files from the Pipe Separated Values (.PSV) format to the Comma Separated Values (.CSV) format. The conversion process utilizes the Google BigQuery operator to handle the data transformation efficiently. Once converted, the resulting .CSV files are saved back to Google Cloud Platform (GCP), ensuring they are accessible and compatible with a wide range of data analysis tools and workflows.
 
-2) IF Schema Exists - This task uses an IF statement to check whether schema for validation exists in our Google Cloud Bucket or not. The workflow further proceeds only if schema exists. 
+2) IF Schema Exists - This task employs an IF statement to verify the existence of a validation schema in our Google Cloud Bucket. If the schema is found, the workflow proceeds to the next steps in the data processing pipeline. If the schema is not found, the workflow is halted, ensuring that data validation cannot occur without the necessary schema, thereby maintaining data integrity and consistency.
 
-3) SCHEMA GENERATION - The input for this task is the merged .CSV file generated from the previous task. If the validation schema doesn't exists, This task constructs a schema and compiles statistics, which are subsequently used for data validation to prevent model crashes caused by incorrect data entry. The schema includes column names and data types, while the statistics encompass null count, minimum, maximum, mean, median, and standard deviation for each column. This schema is then produced in a .JSON file.
+3) SCHEMA GENERATION - The input for this task is the merged .CSV file generated from the previous task. If the validation schema does not exist, this task constructs a schema and compiles essential statistics, which are subsequently used for data validation to prevent model crashes caused by incorrect data entry. The schema includes column names and data types, while the statistics encompass null count, minimum, maximum, mean, median, and standard deviation for each column. This comprehensive schema is then produced in a .JSON file, ensuring that the data conforms to expected formats and ranges before further processing.
 
 4) PUSH .JSON TO GCP - This task pushes .JSON schema file from the previous process to GCP. 
 
-5) PULLING .JSON FOR DATA VALIDATION - This task retrieves the .JSON file from GCP for data validation. The validation is performed according to the schema defined in the previous process. The outcome of this validation is a boolean value: True or False. If each data point passes schema  and statastics validation it retuens True, the process proceeds; otherwise, it halts the further processing of DAG-1 thereby preventing the pipeline from crashing.
+5) PULLING .JSON FOR DATA VALIDATION - This task retrieves the .JSON file from GCP for data validation. The validation is performed according to the schema defined in the previous process, which includes column names, data types, and statistical parameters. The outcome of this validation is a boolean value: True or False. If each data point passes schema and statistics validation, it returns True, allowing the process to proceed. If the validation fails, it returns False, halting further processing of DAG-1. This mechanism prevents the pipeline from crashing due to incorrect data entry, ensuring data quality and consistency before moving to subsequent stages.
 
 6) PREPARING EMAIL CONTENT - This task creates an email notifying the developer that the data validation has failed and the workflow has stopped working to avoid model from failing. Data validation is said to fail when the data does not satisfy the pre-defined schema and data distribution. 
 
@@ -158,7 +164,7 @@ DAG-1 comprises 19 distinct tasks, each designed to enhance the quality and usab
 
 9) PRE - PROCESSING - After the train-test split, X-train and X-test undergo preprocessing. Two separate processes are created: one for preprocessing the training set and another for preprocessing the test set.
 
-10) SCALING TRAIN AND TEST SETS - In this task, the pre-processed training and test datasets are scaled. Separate procedures are established: one for scaling the training set and another for scaling the test set.
+10) SCALING TRAIN AND TEST SETS - In this task, the pre-processed training and test datasets are scaled to standardize the data, which is crucial for many machine learning algorithms. Separate procedures are established to handle the scaling of the training set and the test set independently. The training set scaling involves fitting the scaler to the training data to learn the necessary parameters, such as mean and standard deviation. These parameters are then applied to transform the training data. For the test set, the previously learned parameters from the training set scaler are used to transform the test data, ensuring consistency in data scaling. This separation prevents data leakage and ensures that the model is evaluated on properly scaled and unbiased test data.
 
 11) PUSHING FILES TO GCP - Five distinct tasks are established to upload X_train, X_test, Y_train, Y_test, and the scaler to GCP. These files are uploaded in .pkl format for efficiency.
 
@@ -279,7 +285,36 @@ While the below shows a negative sepsis case
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/64e90c1b-bb20-426d-95db-85c95f7b87e3)
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/7d7a3396-767f-4475-9e48-313f82f3930b)
 
+## DAG 3 : Batch Retraining
 
+The DAG-3 of our pipeline is a scheduled DAG (for example: weekly) which is responsible to feed the model, batches of data and keep monitoring for any change in the performance of the model. For every batch run, below are the rough steps how the above DAG works:
+
+1) We programmitically get which batch of data should we process. For this project we have kept 3 batches of data ready in our GCS bucket. Once we get which batch to process, we pull all the PSV files into a single CSV using BigQuery.
+2) We run this CSV (a dataframe) through our schema and stats validation to see if the data is usable by the model. If this fails we get an anomaly email.
+3) Now that we have our data which is usable, we download the trained scaler and the latest model stored in our bucket and preprocess the data reusing the same functions.
+4) Run a prediction and get metrics from the model and this batch data.
+5) Since batch training is a continous process, we store these small batches of data into our original data and redo the scaler part. As this whole process is same as DAG-1 we are reusing the same tasks in the form of Task Groups.
+6) Now we track the model drift. In our logic if the change in recall is > 5% we give a warning to the user and if the change in recall is > 10% we trigger DAG-2 which will initiate the retraining of the model
+7) For error handling, if any task in the Taskgroup fails we revert the merge of data and send an email to the developer
+8) As the final step, we programmitically increase the batch number for next scheduled batch processing.
+
+
+
+
+
+# Tracking Data Drift
+
+Our model can be served as an Flask API (backend) or from the frontend (Streamlit, which uses the Flask API). We track metrics like latency etc when we are serving. We have another DAG which is responsible to track if there is any data drift in the data that the users provide while using our application.
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f826b1ec-1e29-4055-8b2a-e6a501352c0d)
+
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/cd55b1db-4726-4263-9aa1-f7526ff87227)
+
+
+## DAG 4 : Track Data Drift
+1) The flask app keeps track of all the data has been sent to use the application. This DAG runs weekly to pull the data to verify the schema and statistics validation
+2) If there is any issue with either developers are sent an email to notify the data drift.
 # Computational Reports
 
 We developed custom cloud monitoring dashboards to track key metrics for our Vertex AI training pipelines and Flask endpoint. These dashboards provide real-time insights into CPU and memory usage, the number of requests, and other essential metrics. By leveraging cloud-based monitoring tools, we ensured that all relevant data is visualized in an intuitive and accessible manner, facilitating efficient monitoring and decision-making.
@@ -366,7 +401,7 @@ In our initial attempt to manage a substantial dataset consisting of 40,000 indi
 ![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/a36366fd-0906-4fc5-8795-9965867c66e1)
 The above Gantt chart highlights the bottleneck in our pipeline
 
-### Improvements with Google Cloud Platform
+### Improvements with Google Cloud Platform (Computation Optimization)
 #### Optimized Data Processing
 To enhance performance and manage the extensive dataset of 40,000 files more effectively, we transitioned from a sequential Python-based processing approach to a more robust solution leveraging Google Cloud's BigTable and Cloud Storage. This migration aimed to utilize the scalable infrastructure of GCP to expedite data handling and analysis.
 
@@ -410,6 +445,15 @@ FROM sepsis.dataset_temporary LIMIT 9223372036854775807;
 The above Gantt chart highlights significant improvement in speeds of processing the PSV to CSV data, removing the bottleneck 
 
 By leveraging Google Cloud's powerful data warehousing and storage solutions, we have significantly reduced the time and resources required to process large-scale datasets. This optimized approach not only speeds up the data processing workflow but also enhances the scalability and manageability of our sepsis prediction project.
+
+### Usage of Task Groups (Code Optimization)
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/70def1ac-ccf7-41e9-82e8-7b76b6f1b2fe)
+
+
+In our workflows for DAGs 1 and 3, we utilized Apache Airflow's Task Groups to streamline task replication and reduce redundant coding. By organizing more than 10 similar tasks into groups, we enhanced both readability and reusability.
+
+These Task Groups were defined within a factory_data_processing.py file located in the include/ folder inside our dags/ directory. This setup allowed us to manage complex task logic in a single, reusable component across multiple DAGs, significantly simplifying code management and maintenance. This strategy not only saved development time but also ensured consistent workflow execution.
 
 # Cost Analysis
 
