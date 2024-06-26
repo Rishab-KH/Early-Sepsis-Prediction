@@ -4,12 +4,13 @@ import pandas as pd
 import streamlit as st
 import requests
 from dotenv import load_dotenv
-
+# Load environment variables from a .env file
 load_dotenv()
-
+# Retrieve the Streamlit URI from the environment variables
 streamlit_uri = os.getenv('streamlit_uri')
 
 def main():
+    # Set the configuration for the Streamlit page
     st.set_page_config(page_title="EMR Sepsis Prediction System", layout="wide")
     
     # Title and information
