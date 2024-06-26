@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
+sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
+
 # Custom imports
 import utils.config as config
 from utils.log_config import setup_logging
