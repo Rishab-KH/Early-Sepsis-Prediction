@@ -305,6 +305,12 @@ The DAG-3 of our pipeline is a scheduled DAG (for example: weekly) which is resp
 
 Our model can be served as an Flask API (backend) or from the frontend (Streamlit, which uses the Flask API). We track metrics like latency etc when we are serving. We have another DAG which is responsible to track if there is any data drift in the data that the users provide while using our application.
 
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f826b1ec-1e29-4055-8b2a-e6a501352c0d)
+
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/cd55b1db-4726-4263-9aa1-f7526ff87227)
+
+
 ## DAG 4 : Track Data Drift
 1) The flask app keeps track of all the data has been sent to use the application. This DAG runs weekly to pull the data to verify the schema and statistics validation
 2) If there is any issue with either developers are sent an email to notify the data drift.
