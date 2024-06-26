@@ -31,7 +31,7 @@ def main():
         df['Patient_ID'] = pid
  
         st.subheader("File Content:")
-        st.dataframe(df)  # Use st.dataframe for better visualization
+        #st.dataframe(df)  # Use st.dataframe for better visualization
         
         #df["SepsisLabel"] = y
         # Prepare the data for prediction and column names
