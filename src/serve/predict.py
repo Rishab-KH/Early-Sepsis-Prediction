@@ -208,9 +208,8 @@ def data_preprocess_pipeline(features):
     columns_to_scale = ['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine', 'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets']
     X_preprocessed[columns_to_scale] = scaler.transform(X_preprocessed[columns_to_scale])
     X_preprocessed = X_preprocessed[['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine',
-       'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets', 'Age', 'HospAdmTime',
-       'ICULOS', 'F', 'M']]
-    #X_preprocessed_scaled = scaler.transform(X_preprocessed)
+       'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets', 'Age', 'HospAdmTime','ICULOS', 'F', 'M']]
+    
     return X_preprocessed
         
 @app.route(os.environ['AIP_HEALTH_ROUTE'], methods=['GET'])

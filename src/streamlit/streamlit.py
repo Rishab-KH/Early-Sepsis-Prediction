@@ -24,10 +24,13 @@ def main():
     if uploaded_file is not None:
         ## Reading the file in the form of dataframe and the delimiter 'pipe'
         df = pd.read_csv(uploaded_file, delimiter='|')
-        
+        y = df["SepsisLabel"]
+        df.drop(columns = "SepsisLabel")
+
         st.subheader("File Content:")
         st.dataframe(df)  # Use st.dataframe for better visualization
-
+        
+        df["SepsisLabel"] = y
         # Prepare the data for prediction and column names
         col_names = list(df.columns)
         features = df.replace([np.nan, np.inf, -np.inf], None).values.tolist()
@@ -47,10 +50,11 @@ def main():
             # st.table(predictions)  # Use st.table for better visualization
             
             # Check if any prediction contains "1"
-            if any(pred == 1 for pred in predictions):
-                st.error("Patient has sepsis", icon="🚨")
-            else:
-                st.success("Patient doesn't have sepsis", icon="✅")
+            for pred in predictions:
+                if pred == 1:
+                    st.error("Patient has sepsis", icon="🚨")
+                    break
+            st.success("Patient doesn't have sepsis", icon="✅")
 
         except requests.exceptions.RequestException as e:
             st.error(f"Request failed: {e}", icon="🔥")
