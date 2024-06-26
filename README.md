@@ -122,7 +122,8 @@ Following are the prerequisites of our project:
 - Flask
 
 # GCS Bucket Folder Structure
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/5ecbd9dd-cb8d-4a2f-ad84-ef792a1d11b9)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/3a0469cf-09b1-415b-8938-3508305b562c)
+
 The [link](https://console.cloud.google.com/storage/browser/sepsis-prediction-mlops/data/processed_data) to our bucket
 
 # Data Pipeline
