@@ -51,8 +51,8 @@ def main():
             # Get the predictions from the API response
             predictions = response.json().get("predictions")
             # Display the predictions in a table format
-            st.subheader("Predictions:")
-            st.table(predictions)  # Use st.table for better visualization remove later
+            #st.subheader("Predictions:")
+            #st.table(predictions)  # Use st.table for better visualization remove later
             
             # Check if any prediction contains "1"
             flag = 0
