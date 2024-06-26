@@ -38,7 +38,8 @@ def schema_and_stats_validation(ti):
     validation_result, validation_message = validate_data(df)
     ti.xcom_push(key='validation_message', value=validation_message)
     if validation_result:
-        if "batch" in data_dir: # If we have batch-x in gs:// that mean we are running retrain pipeline
+        if "batch" in data_dir: # If we have batch-x in gs:// that means we are running retrain pipeline
             return ["download_data","download_scaler","download_latest_model"]
-        return 'data_processing_and_saving.train_test_split'
+        else:
+            return 'data_processing_and_saving.train_test_split'
     return 'prepare_email_content'

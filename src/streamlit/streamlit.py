@@ -1,40 +1,59 @@
-import altair as alt
+import os
 import numpy as np
 import pandas as pd
 import streamlit as st
+import requests
+from dotenv import load_dotenv
 
-"""
-# Welcome to Streamlit!
+load_dotenv()
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+streamlit_uri = os.getenv('streamlit_uri')
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+def main():
+    st.set_page_config(page_title="EMR Sepsis Prediction System", layout="wide")
+    
+    # Title and information
+    st.title("EMR Sepsis Prediction System")
+    st.markdown("<br>", unsafe_allow_html=True)  # Add space between title and info
+    st.info('This application predicts if a patient has sepsis or not from the patient record', icon="ℹ️")
+    
+    # Sidebar for file upload
+    st.sidebar.header("Upload Patient Record")
+    uploaded_file = st.sidebar.file_uploader("Upload a patient record (PSV format)", type="psv")
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+    if uploaded_file is not None:
+        ## Reading the file in the form of dataframe and the delimiter 'pipe'
+        df = pd.read_csv(uploaded_file, delimiter='|')
+        
+        st.subheader("File Content:")
+        st.dataframe(df)  # Use st.dataframe for better visualization
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+        # Prepare the data for prediction and column names
+        col_names = list(df.columns)
+        features = df.replace([np.nan, np.inf, -np.inf], None).values.tolist()
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+        # Send the data to the /predict endpoint
+        url = f"{streamlit_uri}/predict"
+        if url is None:
+            st.error("PREDICT_API_URL environment variable is not set.", icon="🔥")
+            return
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
+        try:
+            response = requests.post(url, json={"data": features, "columns": col_names})
+            response.raise_for_status()  # Raise an error for bad status codes
+            predictions = response.json().get("predictions")
+            
+            st.subheader("Predictions:")
+            # st.table(predictions)  # Use st.table for better visualization
+            
+            # Check if any prediction contains "1"
+            if any(pred == 1 for pred in predictions):
+                st.error("Patient has sepsis", icon="🚨")
+            else:
+                st.success("Patient doesn't have sepsis", icon="✅")
 
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+        except requests.exceptions.RequestException as e:
+            st.error(f"Request failed: {e}", icon="🔥")
+
+if __name__ == "__main__":
+    main()

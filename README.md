@@ -1,14 +1,57 @@
-## INTRODUCTION 
+# Table of Contents
+- [Introduction](#introduction)
+- [Description](#description)
+- [Architecture](#architecture)
+- [Links to our Resources](#links-to-our-resources)
+- [Dataset](#dataset)
+    - [Data Card](#data-card)
+- [Prerequisites](#prerequisites)
+- [GCS Bucket Folder Structure](#gcs-bucket-folder-structure)
+- [Data Pipeline](#data-pipeline)
+    - [DAG 1 : Data Pre-Processing](#dag-1--data-pre-processing)
+- [Machine Learning Model Pipeline](#machine-learning-model-pipeline)
+    - [DAG 2 : Trigger Training on Vertex AI](#dag-2--trigger-training-on-vertex-ai)
+        - [Model Pipeline](#model-pipeline)
+        - [Experimental Tracking using MLFlow](#experimental-tracking-using-mlflow)
+        - [ROC-AUC Curve for different models](#roc-auc-curve-for-different-models)
+        - [Hyperparameter Tuning](#hyperparameter-tuning)
+        - [SHAP Plots](#shap-plots)
+- [Machine Learning Scheduled Retraining Pipeline](#machine-learning-scheduled-retraining-pipeline)
+- [Computational Reports](#computational-reports)
+- [Installation (Locally)](#installation-locally)
+  - [Dependencies](#dependencies)
+  - [Steps](#steps)
+- [Pipeline Performance Optimization](#pipeline-performance-optimization)
+  - [Improvements with Google Cloud Platform](#improvements-with-google-cloud-platform)
+- [Cost Analysis](#cost-analysis)
+- [Our Team](#our-team)
+
+
+# Introduction 
 The Early Sepsis Prediction Project is a pioneering initiative designed to transform the landscape of sepsis management in clinical settings through the integration of advanced machine learning (ML) techniques and robust operational processes. Sepsis, a life-threatening response to infection, requires prompt and accurate detection to improve patient outcomes and reduce mortality rates. This project addresses this critical healthcare challenge by facilitating the seamless deployment and management of ML models tailored for early sepsis prediction.
 
-## DESCRIPTION 
+# Description 
 The goal of the Early Sepsis Prediction Project is to leverage machine learning models to accurately predict whether patients have sepsis. This entails two primary objectives:
 
 Prediction Aim: Utilize advanced ML models to predict the presence of sepsis in patients, facilitating early detection and timely intervention.
 
 Operational Excellence: Ensure the continuous monitoring of the ML pipeline to uphold model accuracy, reliability, and integration within clinical workflows.
 
-## DATASET 
+# Architecture
+
+![sample](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/56828752-4285-4ec7-9cd9-f9c5e0ab9e60)
+
+
+# Links to our Resources
+
+- [Cloud Composer (Production Environment)](https://e954b7c017dd452780d2df44a8d5f5a2-dot-us-central1.composer.googleusercontent.com/home) Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu) to get access
+- [Airflow hosted on Compute Engine (Development Environment)](http://35.193.213.112:8080/home)
+- [GCS Bucket](https://console.cloud.google.com/storage/browser/sepsis-prediction-mlops/data/processed_data)
+- [MLFlow](https://mlflow-cloud-run-3wcd2ryf5q-uc.a.run.app/)
+- [Streamlit](https://sepsis-streamlit-3wcd2ryf5q-uc.a.run.app/)
+- [Flask App](https://sepsis-predict-3wcd2ryf5q-uc.a.run.app/ping)
+
+# Dataset 
 Link to dataset used - https://physionet.org/content/challenge-2019/1.0.0/.
 
 DATA DESCRIPTION - 
@@ -63,7 +106,7 @@ The data repository for the Early Sepsis Prediction Project is structured to sup
 | Patient ID  | ID      | String| ID of the patient                                   | ID |
 | SepsisLabel | Target  | int64| For sepsis patients, SepsisLabel is 1 if t≥tsepsis−6 and 0 if t< tsepsis−6, For non-sepsis patients SepsisLabel is 0 | 0 or 1 |
 
-## PREREQUISITES 
+# Prerequisites 
 Following are the prerequisites of our project:
 
 - Airflow
@@ -73,12 +116,16 @@ Following are the prerequisites of our project:
 - Streamlit
 - Flask
 
-## DAG 1 - DATA PRE-PROCESSING 
+# GCS Bucket Folder Structure
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/5ecbd9dd-cb8d-4a2f-ad84-ef792a1d11b9)
+The [link](https://console.cloud.google.com/storage/browser/sepsis-prediction-mlops/data/processed_data) to our bucket
 
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/fc7a1343-7ca6-45e8-bd0e-125871216448)
+# Data Pipeline
+## DAG 1 : Data Pre-Processing
 
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/6ce104aa-10c6-4232-a9dd-53a07e394031)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/c1b953c6-33d8-46df-a868-2b550d893452)
 
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f6b8ee29-6d16-44b0-a182-09beee71d521)
 
 DAG-1 is the inaugural phase of the Early Sepsis Prediction Project, centered on the essential task of data preprocessing. This phase is critical as it transforms raw data into a structured format suitable for machine learning analysis. The key activities within DAG-1 include converting data to CSV format, validating the data, splitting it into training and testing sets, scaling, and cleaning.
 
@@ -119,23 +166,147 @@ DAG-1 comprises 19 distinct tasks, each designed to enhance the quality and usab
 
 13) TRIGGER DAG - 2 - This task is used to trigger DAG - 2 after successful completion of DAG - 1.
 
+# Machine Learning Model Pipeline
+## DAG 2 : Trigger Training on Vertex AI
 
-### GCS Bucket Folder Structure
-![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/5ecbd9dd-cb8d-4a2f-ad84-ef792a1d11b9)
-The [link](https://console.cloud.google.com/storage/browser/sepsis-prediction-mlops/data/processed_data) to our bucket
+DAG 2 is automatically triggered from DAG 1. This DAG is used to intiate model training. The training process is implemented in the train.py file, which includes loading data files i.e, X_train, X_test, y_train and y_test files generated by DAG 1, addressing class imbalance, and performing hyperparameter tuning to optimize the model's performance.
+The train.py, Dockerfile, and requirements.txt files are stored on the GCP Artifact Registry. Dockerfile contains instructions for running the train.py file, while the requirements.txt lists the package dependencies. Vertex AI is utilized to execute the train.py using the dockerfile stored in GCP Artificat Registry. After training and evaluating the models, the best-performing one is selected, and its metrics are saved in the bucket for future use.
+
+<img width="1483" alt="image" src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/5071c0bb-345e-4f50-aa22-d4d818e5787e">
+
+### Model Pipeline
+
+Our Machine learning pipeline is hosted on Vertex AI in Google Cloud Platform which utilizes MLFlow for various experiment tracking.
+
+#### Pipeline Components:
+
+1. **Trainer**:
+   - train.py: Python script that trains the classification model for sepsis prediction in patient records. Training platform is deployed on 		Vertex AI
+   - Dockerfile: Containerizes training environment to ensure consistency across various platforms
+2. **Serve**:
+   - predict.py: Flask application that makes prediction using the best training model
+   - Dockerfile: Contaierizes serving environment to ensure consistency across various platforms
+3. **Streamlit**:
+   - streamlit.py: Streamlit application which handles incoming patient records and demonstrates real world application
+   - Dockerfile: Contaierizes and provides an endpoint for the streamlit application
+
+#### train.py script overview:
+
+1. **Loading Pickle Files**: The train.py script loads X_train, X_test, Y_train, and Y_test .pkl files from DAG 1 for training and pre-processing the data in DAG 2.
+2. **Class Imbalance Handling:** The script addresses class imbalance in the dataset, ensuring fair and accurate model training by balancing the classifications of patients with and without sepsis.
+3. **Model Training and Hyperparameter Tuning:** Extensive model training and tuning were conducted on Logistic Regression, Random Forest Classifier, and XGBoost Classifier using GridSearchCV.
+Tuning parameters for each model:
+- Logistic Regression: penalty, C, solver
+- Random Forest Classifier: n_estimators, max_depth, min_samples_split
+- XGBoost Classifier: learning_rate, n_estimators, max_depth
+
+After extensive evaluation, the XGBoost Classifier  
+
+### Experimental Tracking using MLFlow
+
+We have utilized MLFlow to track our experiments, focusing and hyperparameters and metrics that are crucial for sepsis classification model. MLFlows UI allows us to monitor, compare and optimize hyperparameters effectively.
+
+![MLFlow_UI_Results](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/336cdcb1-a9ca-4331-a924-442503364a20)
+
+**Best Model Result:**
+
+![Best mlops result](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/40423823/75ad0434-3757-4be0-8001-4d79e549dfed)
+
+Link to MLFLow UI: [https://mlflow-cloud-run](https://mlflow-cloud-run-3wcd2ryf5q-uc.a.run.app/#/experiments/0?searchFilter=&orderByKey=attributes.start_time&orderByAsc=false&startTime=ALL&lifecycleFilter=Active&datasetsFilter=W10%3D&modelVersionFilter=All%20Runs&selectedColumns=attributes.%60Source%60,attributes.%60Models%60,attributes.%60Dataset%60&compareRunCharts=)
+
+From the images above, we can visualize the model performance with different hyperparameters. The XGBoost classifier emerged as the best-performing model, achieving a weighted F1 score of 0.97 on the test data.
+
+### Model Efficacy Reports
+
+For the binary classification tasks, We have 3 models RandomForest, XGBoost and Logistic Regression. For every retrain of the pipeline we run a hyperparameter tuning on all the possible parameters and choose the best one. Below we have different AUC-ROC curves for the 3 models
+
+### ROC-AUC Curve for different models
+
+<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/6e8dc783-2b27-4996-a82f-3e74ab983ee7" width="600" height="400">
+<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/1112acfa-48b2-4f4e-84ff-dd4cc0e947c9" width="600" height="400">
+<img src="https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/5cae02c1-d7e1-40a9-a858-2461e04a1741" width="600" height="400">
+
+### Hyperparameter Tuning
+Below is the searchspace we used for our [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) with 5 folds and F1 as the scoring metric
+
+```javascript
+{
+    'RandomForest': {
+        'model': RandomForestClassifier(),
+        'params': {
+            'n_estimators': [50, 100],
+            'max_depth': [10, 20],
+            'min_samples_split': [5, 7]
+        }
+    },
+    'XGBoost': {
+        'model': XGBClassifier(),
+        'params': {
+            'n_estimators': [50, 100, 200],
+            'max_depth': [3, 6, 9],
+            'learning_rate': [0.01, 0.1, 0.2]
+        }
+    },
+    'LogisticRegression': {
+        'model': LogisticRegression(max_iter=200),
+        'params': {
+            'C': [0.1, 1, 10],
+            'solver': ['liblinear', 'lbfgs']
+        }
+    }
+}
+```
+
+### SHAP Plots
+
+To understand and interpret the predictions made by our XGBoost model, we utilized SHAP (SHapley Additive exPlanations) plots. SHAP is a powerful tool that provides visual explanations of the contributions of each feature to the model's output, enabling us to gain insights into the decision-making process of our machine learning model.
+
+#### SHAP Summary Plot
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/aaa5e3c7-bba8-4ff8-9eb3-f1e57f71fadd)
+
+#### SHAP Beeswarm Plot
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/fddf8610-2a2e-4168-b6ed-0385ad6404a9)
+
+#### Force Plots
+Below are two force plots which shows how different features contributed to the output. According to the summary plot features like ICU length-of-stay and Temperature of the patient has high contribution which made sense. In the below example the patient had a very high ICU length-of-stay (ICULOS) and with other factors resulted in a positive Sepsis
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f5d8731f-9c89-4f67-afdc-e997d88b1901)
+
+While the below shows a negative sepsis case
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/4d581a51-b62b-4a49-b753-41bb233ddcbc)
+
+# Machine Learning Scheduled Retraining Pipeline
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/64e90c1b-bb20-426d-95db-85c95f7b87e3)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/7d7a3396-767f-4475-9e48-313f82f3930b)
 
 
-## Installation
+# Computational Reports
+
+We developed custom cloud monitoring dashboards to track key metrics for our Vertex AI training pipelines and Flask endpoint. These dashboards provide real-time insights into CPU and memory usage, the number of requests, and other essential metrics. By leveraging cloud-based monitoring tools, we ensured that all relevant data is visualized in an intuitive and accessible manner, facilitating efficient monitoring and decision-making.
+
+To enhance reliability, we implemented an alerting system that sends email notifications whenever CPU or memory usage exceeds predefined thresholds. This proactive alerting mechanism helps us quickly address potential issues, ensuring the smooth operation of our services and maintaining optimal performance.
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/f47cbab1-646d-4138-881e-256f923a62cc)
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/3e4767ba-cdbf-4bf5-9812-e7702d670dc4)
+
+[Vertex AI - Computational Report](https://console.cloud.google.com/monitoring/dashboards/builder/40f6af94-407b-44d0-a9c2-6a0bdbf13534;duration=P14D?project=leafy-sunrise-425218-h4)
+
+
+[Endpoint - Computational Report](https://console.cloud.google.com/monitoring/dashboards/builder/69798a5d-8bbf-4d2e-8606-eea3beff5388;duration=P14D?project=leafy-sunrise-425218-h4)
+
+To access these dashboards, Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu)
+
+# Installation (Locally)
 
 You can directly view our server hosted Airflow instance [here](http://35.193.213.112:8080/home)
 
 Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu) for credentials
 
-### Dependencies
+## Dependencies
 - git
 - Docker, Installation guide [here](https://docs.docker.com/engine/install/) 
 
-### Steps
+## Steps
 
 Clone the repository:
 ```shell
@@ -188,7 +359,7 @@ http://locahost:8080
 
 Note: Make sure to run the above `docker compose` commands inside your project root, i.e wherever the `docker-compose.yml` file is placed
 
-## Peformance Optimization
+# Pipeline Performance Optimization
 
 In our initial attempt to manage a substantial dataset consisting of 40,000 individual files, we employed a PythonOperator within Apache Airflow to manually fetch and sequentially append each file from the cloud. This approach, however, turned out to be highly resource-intensive and inefficient, as evidenced by the prolonged execution times depicted in the Gantt chart below. Python's handling of the data did not meet our performance expectations, necessitating a search for more robust processing solutions.
 
@@ -240,7 +411,28 @@ The above Gantt chart highlights significant improvement in speeds of processing
 
 By leveraging Google Cloud's powerful data warehousing and storage solutions, we have significantly reduced the time and resources required to process large-scale datasets. This optimized approach not only speeds up the data processing workflow but also enhances the scalability and manageability of our sepsis prediction project.
 
-## Our Team
+# Cost Analysis
+
+All of our resources are in us-central1 location (except Vertex AI nodes run on us-east1). Below is a breakdown of cost of each resource (Daily cost)
+
+| Service | Cost    |
+|----------|---------|
+| Cloud Composer       | $16.92 |
+| Compute Engine       | $3.59 |
+| Networking       | $0.67 |
+| Cloud Run       | $0.52 |
+| Cloud SQL       | $0.29 |
+| Cloud Storage       | $0.26 |
+| Miscellaneous       | $0.18 |
+
+Total Daily cost: $22.43
+
+Yearly Serving Cost: $8186.95 (with development machine)
+
+
+Yearly Serving Cost: $6876.60 (without development machine)
+
+# Our Team
 
 [Sharanya Senthil](mailto:senthil.sh@northeastern.edu)
 

@@ -1,16 +1,21 @@
 import os
 import re
 import pickle
+
 from google.cloud import storage
+from google.cloud import storage, bigquery, logging
+from google.cloud.bigquery import SchemaField
+
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
-from google.cloud import storage
+
 import numpy as np
 import pandas as pd
 import time
 from datetime import datetime
-from google.cloud import storage, bigquery, logging
-from google.cloud.bigquery import SchemaField
+import io
+
+
 
 load_dotenv()
 
@@ -87,6 +92,31 @@ def load_scaler(bucket, pickle_file_path='artifacts/scaler.pkl'):
     logger.log_text("Downloaded Scaler", severity='INFO')
     return scaler
 
+def check_and_create_directory(bucket, prefix):
+    """Check if a directory exists in GCS and create it if it doesn't exist."""
+    blobs = list(bucket.list_blobs(prefix=prefix))
+    
+    # If the directory exists, there will be blobs with the specified prefix
+    if not blobs:
+        # Create an empty blob to represent the directory
+        blob = bucket.blob(prefix + "/")
+        blob.upload_from_string("")
+        print(f"Created directory: {prefix}")
+        logger.log_text(f"Created directory: {prefix}", severity='INFO')
+
+def read_existing_data(bucket, filename):
+    """Read existing data from GCS and return as DataFrame."""
+    try:
+        blob = bucket.blob(filename)
+        data = blob.download_as_text()
+        existing_df = pd.read_csv(io.StringIO(data))
+        return existing_df
+    except Exception as e:
+        print(f"Error reading existing data: {e}")
+        return pd.DataFrame() 
+
+
+
 def load_model(bucket, models_prefix='models'):
     blobs = list(bucket.list_blobs(prefix=models_prefix))
     model_folders = {}
@@ -128,6 +158,7 @@ def data_preprocess_pipeline(features):
                         'Fibrinogen', 'Unit1', 'Unit2']
     df["Unit"] = df["Unit1"] + df["Unit2"]
     df.drop(columns=columns_to_drop, inplace=True)
+
 
 
 
@@ -176,8 +207,8 @@ def data_preprocess_pipeline(features):
     X_preprocessed = X_preprocessed.drop(columns=X_preprocessed.columns[X_preprocessed.columns.str.contains('^Unnamed', case=False, regex=True)])
     columns_to_scale = ['HR', 'O2Sat', 'Temp', 'MAP', 'Resp', 'BUN', 'Chloride', 'Creatinine', 'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets']
     X_preprocessed[columns_to_scale] = scaler.transform(X_preprocessed[columns_to_scale])
-    X_preprocessed_scaled = scaler.transform(X_preprocessed)
-    return X_preprocessed_scaled
+    #X_preprocessed_scaled = scaler.transform(X_preprocessed)
+    return X_preprocessed
         
 @app.route(os.environ['AIP_HEALTH_ROUTE'], methods=['GET'])
 def health_check():
@@ -203,8 +234,13 @@ def predict():
     if not request_json:
         return jsonify({"error": "Invalid input, no JSON payload provided"}), 400
     input_data = request_json.get('data')
+    col_names = request_json.get('columns')
+
     if input_data is None:
         return jsonify({"error": "Invalid input, 'data' field is missing"}), 400
+    
+    if col_names is None:
+        return jsonify({"error": "Invalid input, 'column' names are missing"}), 400
 
     input_array = np.array(input_data)
     if input_array.ndim == 1:
@@ -214,6 +250,40 @@ def predict():
     if input_array.shape[1]!= 41:
         return jsonify({"error": "Invalid input shape"}), 400
     features = input_array.copy()
+
+    # Convert the NumPy array to a DataFrame with the column names
+    df = pd.DataFrame(input_array, columns=col_names)
+
+    # Add the "created_at" column with the current datetime
+    df['created_at'] = datetime.now()
+
+    # Location to save the file
+    predict_path = os.getenv("PREDICT_PATH")
+
+    # Location to save the file
+    directory_prefix = "/".join(predict_path.split("/")[:-1])
+    filename = predict_path
+    
+    # Check if the directory exists in GCS and create it if it doesn't
+    check_and_create_directory(bucket, directory_prefix)
+
+    # Check if the file exists in GCS
+    blob = bucket.blob(filename)
+    if blob.exists():
+        # Read existing data
+        existing_df = read_existing_data(bucket, filename)
+        # Append new data to existing DataFrame
+        updated_df = pd.concat([existing_df, df], ignore_index=True)
+    else:
+        # If file does not exist, the new DataFrame is the updated DataFrame
+        updated_df = df
+
+    # Save updated DataFrame as CSV to GCS
+    blob.upload_from_string(updated_df.to_csv(index=False), 'text/csv')
+    logger.log_text(f"Data appended to {filename} in GCS.", severity='INFO')
+
+    # Continue with the prediction logic
+
     input_array = data_preprocess_pipeline(features)
     predictions = model.predict(input_array)
 
@@ -243,6 +313,7 @@ create_or_get_logging_table_bq(bq_client, table_id)
 storage_client, bucket = initialize_client_and_bucket()
 scaler = load_scaler(bucket=bucket)
 model = load_model(bucket=bucket)
+
 
 if __name__ == '__main__':
     print("Started predict.py ")

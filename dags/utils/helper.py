@@ -96,3 +96,59 @@ def prepare_email_content(**context):
     """
     return html_content
 
+
+def prepare_email_content_schema_prod(**context):
+    ti = context['ti']
+    validation_message = ti.xcom_pull(task_ids='if_validate_data_schema', key='validation_schema_message')
+    
+    dag_run = context['dag_run']
+    dag_id = dag_run.dag_id
+    execution_date = dag_run.execution_date.isoformat()
+    task_id = ti.task_id
+    owner = ti.task.dag.owner
+    
+    # Constructing the HTML content for the email.
+    html_content = f"""
+    <h3>Schema of serving data needs to be changed</h3>
+    <p>Find the error below:</p>
+    <p>{validation_message}</p>
+    <p>Schema of the serving data needs to be changed by the data team according to the training</p>
+    <br>
+    <strong>DAG Details:</strong>
+    <ul>
+        <li>DAG ID: {dag_id}</li>
+        <li>Task ID: {task_id}</li>
+        <li>Execution Date: {str(execution_date)}</li>
+        <li>Owner: {owner}</li>
+    </ul>
+    <p>This is an automated message from Airflow. Please do not reply directly to this email.</p>
+    """
+    return html_content
+
+def prepare_email_content_statistics_prod(**context):
+    ti = context['ti']
+    validation_message = ti.xcom_pull(task_ids='if_validate_data_statistics', key='validation_email_message')
+    
+    dag_run = context['dag_run']
+    dag_id = dag_run.dag_id
+    execution_date = dag_run.execution_date.isoformat()
+    task_id = ti.task_id
+    owner = ti.task.dag.owner
+    
+    # Constructing the HTML content for the email.
+    html_content = f"""
+    <h3>Data drift detected on serving data</h3>
+    <p>Find the error below:</p>
+    <p>{validation_message}</p>
+    <p>Data Drift observed between serving and training data. User needs to send more data similar to production data for re-training</p>
+    <br>
+    <strong>DAG Details:</strong>
+    <ul>
+        <li>DAG ID: {dag_id}</li>
+        <li>Task ID: {task_id}</li>
+        <li>Execution Date: {str(execution_date)}</li>
+        <li>Owner: {owner}</li>
+    </ul>
+    <p>This is an automated message from Airflow. Please do not reply directly to this email.</p>
+    """
+    return html_content
