@@ -25,7 +25,7 @@ def main():
         ## Reading the file in the form of dataframe and the delimiter 'pipe'
         df = pd.read_csv(uploaded_file, delimiter='|')
         y = df["SepsisLabel"]
-        df.drop(columns = "SepsisLabel")
+        df =  df.drop(columns = "SepsisLabel")
 
         st.subheader("File Content:")
         st.dataframe(df)  # Use st.dataframe for better visualization
@@ -50,11 +50,15 @@ def main():
             st.table(predictions)  # Use st.table for better visualization remove later
             
             # Check if any prediction contains "1"
+            flag = 0
             for pred in predictions:
                 if pred == 1:
-                    st.error("Patient has sepsis", icon="🚨")
+                    flag = 1
                     break
-            st.success("Patient doesn't have sepsis", icon="✅")
+            if flag == 1:
+                st.error("Patient has sepsis", icon="🚨")
+            else:
+                st.success("Patient doesn't have sepsis", icon="✅")
 
         except requests.exceptions.RequestException as e:
             st.error(f"Request failed: {e}", icon="🔥")
