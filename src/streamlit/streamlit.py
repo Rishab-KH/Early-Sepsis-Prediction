@@ -26,7 +26,8 @@ def main():
         df = pd.read_csv(uploaded_file, delimiter='|')
         y = df["SepsisLabel"]
         df =  df.drop(columns = "SepsisLabel")
-
+        df['Patient_ID'] = df['Patient_ID'].astype(str) # Convert patient id to str
+ 
         st.subheader("File Content:")
         st.dataframe(df)  # Use st.dataframe for better visualization
         
