@@ -16,15 +16,17 @@ from datetime import datetime
 import io
 
 
-
+## Load environment variables from a .env file
 load_dotenv()
-
+## Initialize Flask app
 app = Flask(__name__)
+## Retrieve the bucket name from environment variables
 bucket_name = os.getenv("BUCKET")
 
+# Initialize BigQuery client and table ID
 bq_client = bigquery.Client()
 table_id = os.environ['MODEL_MONITORING_TABLE_ID']
-
+# Initialize Google Cloud Logging client and logger
 client = logging.Client()
 logger = client.logger('Serving_Pipeline')
 logger.log_text(f'Iniatiating Serving Pipeline {datetime.now().isoformat()}', severity='INFO')
