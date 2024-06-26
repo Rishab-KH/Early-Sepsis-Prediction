@@ -447,6 +447,9 @@ By leveraging Google Cloud's powerful data warehousing and storage solutions, we
 
 ### Usage of Task Groups (Code Optimization)
 
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/70def1ac-ccf7-41e9-82e8-7b76b6f1b2fe)
+
+
 In our workflows for DAGs 1 and 3, we utilized Apache Airflow's Task Groups to streamline task replication and reduce redundant coding. By organizing more than 10 similar tasks into groups, we enhanced both readability and reusability.
 
 These Task Groups were defined within a factory_data_processing.py file located in the include/ folder inside our dags/ directory. This setup allowed us to manage complex task logic in a single, reusable component across multiple DAGs, significantly simplifying code management and maintenance. This strategy not only saved development time but also ensured consistent workflow execution.
