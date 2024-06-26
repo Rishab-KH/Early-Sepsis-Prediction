@@ -34,7 +34,6 @@ def main():
         #st.subheader("File Content:")
         #st.dataframe(df)  # Use st.dataframe for better visualization
         
-        #df["SepsisLabel"] = y
         # Prepare the data for prediction and column names
         col_names = list(df.columns)
         features = df.replace([np.nan, np.inf, -np.inf], None).values.tolist()
