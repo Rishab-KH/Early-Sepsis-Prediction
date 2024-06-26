@@ -17,12 +17,12 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
-import dags.utils.config as config
-from dags.utils.helper import prepare_email_content, save_data_to_pickle, load_data_from_pickle
-from dags.utils.schema_stats_utils import schema_and_stats_validation
-from dags.utils.data_preprocessing import data_preprocess_pipeline 
-from dags.utils.data_scale_utils import scale_test_data
-from dags.include.factory_data_processing import data_processing_task_group
+import utils.config as config
+from utils.helper import prepare_email_content, save_data_to_pickle, load_data_from_pickle
+from utils.schema_stats_utils import schema_and_stats_validation
+from utils.data_preprocessing import data_preprocess_pipeline 
+from utils.data_scale_utils import scale_test_data
+from include.factory_data_processing import data_processing_task_group
 
 default_args = {
     "owner": 'airflow',
@@ -175,7 +175,7 @@ with DAG(
     schedule_interval = None,
     default_args=default_args,
     catchup = False,
-    template_searchpath=["/opt/airflow/dags/utils"]
+    template_searchpath=["/opt/airflow/dags/utils","/home/airflow/gcs/dags/utils"]
 ) as dag:
     task_get_batch_number_to_process = PythonOperator(
         task_id = "get_batch_number",

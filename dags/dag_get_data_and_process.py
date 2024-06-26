@@ -13,11 +13,11 @@ from airflow.operators.email import EmailOperator
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
-import dags.utils.config as config
-from dags.utils.helper import prepare_email_content
-from dags.utils.log_config import setup_logging
-from dags.utils.schema_stats_utils import schema_stats_gen, schema_and_stats_validation
-from dags.include.factory_data_processing import data_processing_task_group
+import utils.config as config
+from utils.helper import prepare_email_content
+from utils.log_config import setup_logging
+from utils.schema_stats_utils import schema_stats_gen, schema_and_stats_validation
+from include.factory_data_processing import data_processing_task_group
 
 
 DATA_DIR = config.DATA_DIR
@@ -60,7 +60,7 @@ with DAG(
     schedule_interval = None,
     default_args=default_args,
     catchup = False,
-    template_searchpath=["/opt/airflow/dags/utils"]
+    template_searchpath=["/opt/airflow/dags/utils","/home/airflow/gcs/dags/utils"]
 ) as dag:
 
     task_gcs_psv_to_gcs_csv = BigQueryInsertJobOperator(

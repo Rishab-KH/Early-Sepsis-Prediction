@@ -11,9 +11,9 @@ from airflow.operators.dummy import DummyOperator
 sys.path.append(os.path.abspath(os.environ["AIRFLOW_HOME"]))
 
 # Custom imports
-import dags.utils.config as config
-from dags.utils.helper import prepare_email_content_schema_prod, prepare_email_content_statistics_prod
-from dags.utils.log_config import setup_logging
+import utils.config as config
+from utils.helper import prepare_email_content_schema_prod, prepare_email_content_statistics_prod
+from utils.log_config import setup_logging
 
 import gcsfs
 import json
@@ -253,7 +253,7 @@ with DAG(
     schedule_interval="@weekly",
     default_args=default_args,
     catchup = False,
-    template_searchpath=["/opt/airflow/dags/utils"]
+    template_searchpath=["/opt/airflow/dags/utils","/home/airflow/gcs/dags/utils"]
 ) as dag:
 
 
