@@ -3,6 +3,7 @@ from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
 import os
 import pandas as pd
+import numpy as np
 import re
 import json
 import sys
@@ -106,6 +107,9 @@ def execute_model_and_get_results():
     model = load_data_from_pickle("model.pkl")
     print(y_val.value_counts())
     y_pred = model.predict(X)
+
+    y_val = y_val.to_numpy() if isinstance(y_val, pd.Series) else y_val
+    y_pred = y_pred if isinstance(y_pred, np.ndarray) else np.array(y_pred)
     
     accuracy = accuracy_score(y_val, y_pred)
     precision = precision_score(y_val, y_pred, average='weighted')
@@ -118,6 +122,7 @@ def execute_model_and_get_results():
                     'precision': precision,
                     'recall': recall,
                     'f1_score': f1,}
+    print(metrics)
 
     return metrics # pull later using xcom
 
@@ -129,9 +134,9 @@ def track_model_drift(ti):
     
     perc_change_in_recall = 100*(current_matrics['recall'] - batch_matrics['recall']) / current_matrics['recall']
 
-    if perc_change_in_recall > 5:
+    if perc_change_in_recall > 3:
         print(f"Warning: Change in recall: {perc_change_in_recall}% is more than 5%, model might be drifting")
-    if perc_change_in_recall > 10:
+    if perc_change_in_recall > 5:
         print(f"Critical: Heavy change in recall: {perc_change_in_recall}% is more than 10%, retraining model with new batch data")
         return 'trigger_model_retrain'
     return 'set_batch_number'
