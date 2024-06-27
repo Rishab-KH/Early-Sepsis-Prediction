@@ -1,6 +1,7 @@
 from airflow import DAG
 from datetime import datetime, timedelta
 import os
+import numpy as np
 import pandas as pd
 import sys
 from airflow.operators.python import PythonOperator
@@ -50,7 +51,7 @@ def drop_created_at_column(**kwargs):
     modified_df_path = "/".join(df_path_list[:-1]) + f"/archived_{df_path_list[-1]}" # Src of the data
     
     df = pd.read_csv(modified_df_path)
-
+    
     if 'created_at' in df.columns:
         df.drop(columns=['created_at'], inplace=True)
         # A copy of the CSV without the created at column with name ProdDataset.csv
@@ -104,21 +105,23 @@ def validate_schema(df):
     
     flag = True
     for column, dtype in schema.items():
-        if column not in df.columns:
-            err_msg = f"Missing column: {column}\n"
-            logger.error(err_msg)
-            flag = False
-            
-        if column == "Age":
-            if not (str(df["Age"].dtype) != "float64" or str(df["Age"].dtype) != "int64"):
-                err_msg = f"Invalid type for column Age. Expected int64 or float64, got something else"
+        if "SepsisLabel" !=  column:
+            if column not in df.columns:
+                err_msg = f"Missing column: {column}\n"
                 logger.error(err_msg)
                 flag = False
                 
-        elif str(df[column].dtype) != dtype:
-            err_msg = f"Invalid type for column {column}: Expected {dtype}, got {df[column].dtype}"
-            logger.error(err_msg)
-            flag = False
+            if column == "Age":
+                if df["Age"].dtype not in [np.int64, np.float64]:
+                    err_msg = f"Invalid type for column Age. Expected int64 or float64, got something else"
+                    logger.error(err_msg)
+                    flag = False
+
+                    
+            elif str(df[column].dtype) != dtype:
+                err_msg = f"Invalid type for column {column}: Expected {dtype}, got {df[column].dtype}"
+                logger.error(err_msg)
+                flag = False
             
     logger.info("Schema validation passed.")
     # return True, err_msg
