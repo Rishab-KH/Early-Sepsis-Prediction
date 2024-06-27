@@ -101,7 +101,7 @@ def validate_schema(df):
     # Load schema and statistics
     schema_and_stats = load_schema_and_stats()
     logger.info(f"schema for comparision between training and serving data is loaded successfully.")
-    schema = schema_and_stats['schema']
+    schema = schema_and_stat['schema']
     
     flag = True
     for column, dtype in schema.items():
@@ -131,6 +131,26 @@ def validate_schema(df):
         return flag, err_msg
     return flag, err_msg # err_msg will be set to None if flag is True
 
+def schema_validation(ti):
+    data_dir = ti.xcom_pull('get_data_directory')
+    try:
+        df=pd.read_csv(data_dir, sep=",")
+        logger.info(f"Data loaded successfully.")
+    except FileNotFoundError as e:
+        logger.error(f"File not found: {config.PREDICT_DIR}. Error: {e}")
+        raise ValueError("Failed to Load Data for Schema Validation. Stopping DAG execution.")
+    validate_schema_result, validate_schema_msg = validate_schema(df)
+    if validate_schema_result == False:
+        err_msg = f"Schema validation failed: {validate_schema_msg}"
+        logger.error(err_msg)
+    else:
+        err_msg = None
+        logger.info(f"Schema validation succeeded")
+    validate_schema_message = err_msg
+    ti.xcom_push(key='validation_schema_message', value=validate_schema_message)
+    if validate_schema_result:
+            return 'end_monitor_task' # Need to change this
+    return 'prepare_email_schema_content'
 
 def validate_statistics(df):
     """
@@ -205,26 +225,7 @@ def validate_statistics(df):
         return flag, err_msg
 
 
-def schema_validation(ti):
-    data_dir = ti.xcom_pull('get_data_directory')
-    try:
-        df=pd.read_csv(data_dir, sep=",")
-        logger.info(f"Data loaded successfully.")
-    except FileNotFoundError as e:
-        logger.error(f"File not found: {config.PREDICT_DIR}. Error: {e}")
-        raise ValueError("Failed to Load Data for Schema Validation. Stopping DAG execution.")
-    validate_schema_result, validate_schema_msg = validate_schema(df)
-    if validate_schema_result == False:
-        err_msg = f"Schema validation failed: {validate_schema_msg}"
-        logger.error(err_msg)
-    else:
-        err_msg = None
-        logger.info(f"Schema validation succeeded")
-    validate_schema_message = err_msg
-    ti.xcom_push(key='validation_schema_message', value=validate_schema_message)
-    if validate_schema_result:
-            return 'end_monitor_task' # Need to change this
-    return 'prepare_email_schema_content'
+
 
 def stats_validation(ti):
     data_dir = ti.xcom_pull('get_data_directory')
@@ -278,7 +279,7 @@ with DAG(
 
     task_data_statistics_validation = BranchPythonOperator(
         task_id='if_validate_data_statistics',
-        python_callable=schema_validation
+        python_callable=stats_validation
     )
 
     task_prepare_email_schema_validation_failed = PythonOperator(
