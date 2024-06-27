@@ -213,7 +213,7 @@ Tuning parameters for each model:
 - Random Forest Classifier: n_estimators, max_depth, min_samples_split
 - XGBoost Classifier: learning_rate, n_estimators, max_depth
 
-After extensive evaluation, the XGBoost Classifier  
+After extensive evaluation, the XGBoost Classifier proves to be the best  
 
 ### Experimental Tracking using MLFlow
 
