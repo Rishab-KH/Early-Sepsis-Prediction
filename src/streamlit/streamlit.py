@@ -22,14 +22,18 @@ def main():
     st.sidebar.header("Upload Patient Record")
     uploaded_file = st.sidebar.file_uploader("Upload a patient record (PSV format)", type="psv")
 
+    
     if uploaded_file is not None:
         ## Reading the file in the form of dataframe and the delimiter 'pipe'
         df = pd.read_csv(uploaded_file, delimiter='|')
         y = df["SepsisLabel"]
         df =  df.drop(columns = "SepsisLabel")
         filename = uploaded_file.name
-        pid = filename[2:-4]
+        pid = filename if filename.rfind(".") == -1 else filename[:filename.rfind(".")]
         df['Patient_ID'] = pid
+        # Modify the existing 'Patient_ID' column to str
+        df['Patient_ID'] = df['Patient_ID'].apply(lambda x: str(int(x)) if pd.notna(x) and not isinstance(x, str) else (x if isinstance(x, str) else ""))
+
  
         st.subheader("File Content:")
         st.dataframe(df)  # Use st.dataframe for better visualization
@@ -37,6 +41,7 @@ def main():
         # Prepare the data for prediction and column names
         col_names = list(df.columns)
         features = df.replace([np.nan, np.inf, -np.inf], None).values.tolist()
+
 
         # Send the data to the /predict endpoint
         url = f"{streamlit_uri}/predict"

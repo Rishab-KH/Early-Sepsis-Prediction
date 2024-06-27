@@ -53,10 +53,10 @@ def drop_created_at_column(**kwargs):
 
     if 'created_at' in df.columns:
         df.drop(columns=['created_at'], inplace=True)
-        df.to_csv(df_path, index=False) # A copy of the CSV without the created at column with name ProdDataset.csv
+        # A copy of the CSV without the created at column with name ProdDataset.csv
+        df.to_csv(df_path, index=False) 
     logger.info("Dropped the 'created_at' column from the DataFrame")
     logger.info(f"Existing columns in production data {df.columns}")
-# Load Schema
 
 def load_schema_and_stats(schema_file=STATS_SCHEMA_PATH):
     """
