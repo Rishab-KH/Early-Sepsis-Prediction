@@ -31,9 +31,26 @@ def main():
         filename = uploaded_file.name
         pid = filename if filename.rfind(".") == -1 else filename[:filename.rfind(".")]
         df['Patient_ID'] = pid
-        # Modify the existing 'Patient_ID' column to str
+        
+        # Modify the existing 'Patient_ID' cast to str
         df['Patient_ID'] = df['Patient_ID'].apply(lambda x: str(int(x)) if pd.notna(x) and not isinstance(x, str) else (x if isinstance(x, str) else ""))
 
+
+        # cast columns to FLOAT as per schema
+        columns_to_float = ["HR", "O2Sat", "Temp", "SBP", "MAP", "DBP", "Resp", "EtCO2", "BaseExcess", "HCO3", "FiO2", "pH", "PaCO2", "SaO2", "AST", 
+                            "BUN", "Alkalinephos", "Calcium", "Chloride", "Creatinine", "Bilirubin_direct", "Glucose", "Lactate", "Magnesium", 
+                            "Phosphate", "Potassium", "Bilirubin_total", "TroponinI", "Hct", "Hgb", "PTT", "WBC", "Fibrinogen", "Platelets", 
+                            "Age", "Unit1", "Unit2", "HospAdmTime"]
+
+        for column in columns_to_float:
+            df[column] = df[column].astype(float)
+
+        # Cast column to INT as per schema
+        columns_to_int = ["Gender", "ICULOS", "SepsisLabel"]
+
+        for column in columns_to_int:
+            df[column] = df[column].astype(int)
+        
  
         st.subheader("File Content:")
         st.dataframe(df)  # Use st.dataframe for better visualization
