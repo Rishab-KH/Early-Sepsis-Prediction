@@ -8,9 +8,11 @@ gcsfs>=2021.4.0
 python-dotenv
 xgboost
 Flask
+Flask-Mail
 joblib
 
 google-cloud-logging
 google-auth
 google-cloud-bigquery
 google-cloud-storage
+google-cloud-secret-manager

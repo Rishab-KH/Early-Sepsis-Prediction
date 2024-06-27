@@ -72,24 +72,26 @@ def main():
         try:
             # Make a POST request to the prediction API
             response = requests.post(url, json={"data": features, "columns": col_names})
-            response.raise_for_status()  # Raise an error for bad status codes
+            # response.raise_for_status()  # Raise an error for bad status codes
             # Get the predictions from the API response
-            predictions = response.json().get("predictions")
-            # Display the predictions in a table format
-            #st.subheader("Predictions:")
-            #st.table(predictions)  # Use st.table for better visualization remove later
-            
-            # Check if any prediction contains "1"
-            flag = 0
-            for pred in predictions:
-                if pred == 1:
-                    flag = 1
-                    break
-            if flag == 1:
-                st.error("Patient has sepsis", icon="🚨")
+            if response.status_code == 201:
+                predictions = response.json().get("predictions")
+                # Display the predictions in a table format
+                #st.subheader("Predictions:")
+                #st.table(predictions)  # Use st.table for better visualization remove later
+                
+                # Check if any prediction contains "1"
+                flag = 0
+                for pred in predictions:
+                    if pred == 1:
+                        flag = 1
+                        break
+                if flag == 1:
+                    st.error("Patient has sepsis", icon="🚨")
+                else:
+                    st.success("Patient doesn't have sepsis", icon="✅")
             else:
-                st.success("Patient doesn't have sepsis", icon="✅")
-
+                st.error(response.json().get("error"))
         except requests.exceptions.RequestException as e:
             st.error(f"Request failed: {e}", icon="🔥")
 
