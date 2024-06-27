@@ -5,8 +5,8 @@ on:
     paths:
     - 'src/streamlit/**'
     - '.github/workflows/streamlit-build.yaml'
-    branches:
-    - 'main'
+    # branches:
+    # - 'main'
 
 jobs:
   deploy:

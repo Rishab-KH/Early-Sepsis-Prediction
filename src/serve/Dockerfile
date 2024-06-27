@@ -12,6 +12,7 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
 
 ENV BUCKET=sepsis-prediction-mlops
+ENV PROJECT_ID=leafy-sunrise-425218-h4
 ENV AIP_HEALTH_ROUTE=/ping
 ENV AIP_PREDICT_ROUTE=/predict
 ENV AIP_HTTP_PORT=8080

@@ -5,8 +5,8 @@ on:
     paths:
     - 'src/serve/**'
     - '.github/workflows/serve-build.yaml'
-    branches:
-    - 'main'
+    # branches:
+    # - 'main'
 
 jobs:
   deploy:

@@ -8,6 +8,7 @@ gcsfs>=2021.4.0
 python-dotenv
 xgboost
 Flask
+Flask-Mail
 joblib
 
 google-cloud-logging

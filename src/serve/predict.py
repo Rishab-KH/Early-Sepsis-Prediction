@@ -1,13 +1,17 @@
 import os
 import re
 import pickle
+import json
 
 from google.cloud import storage
 from google.cloud import storage, bigquery, logging
 from google.cloud.bigquery import SchemaField
+from google.cloud import secretmanager
 
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
+from flask_mail import Mail
+from flask_mail import Message
 
 import numpy as np
 import pandas as pd
@@ -22,6 +26,23 @@ load_dotenv()
 app = Flask(__name__)
 ## Retrieve the bucket name from environment variables
 bucket_name = os.getenv("BUCKET")
+
+## Get SMTP password from GCP secrets
+project_id = os.getenv("PROJECT_ID")
+secret_id = "smtp-password"
+secret_client = secretmanager.SecretManagerServiceClient()
+name = f"projects/{project_id}/secrets/{secret_id}/versions/1"
+smtp_secret = secret_client.access_secret_version(request={"name": name}).payload.data.decode("UTF-8")
+
+## Set SMTP credentials
+app.config["MAIL_SERVER"]="smtp.gmail.com"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USERNAME"] = "derilbackup@gmail.com"
+app.config["MAIL_PASSWORD"] = smtp_secret
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USE_SSL"] = False
+app.config["MAIL_DEFAULT_SENDER"] = 'derilbackup@gmail.com'
+mail = Mail(app)
 
 # Initialize BigQuery client and table ID
 bq_client = bigquery.Client()
@@ -93,6 +114,17 @@ def load_scaler(bucket, pickle_file_path='artifacts/scaler.pkl'):
     print("Downloaded Scaler")
     logger.log_text("Downloaded Scaler", severity='INFO')
     return scaler
+
+def load_stats_schema_file(bucket, json_file_path = "artifacts/schema_and_stats.json"):
+    local_temp_file = "temp.json"
+    blob = bucket.blob(json_file_path)
+    blob.download_to_filename(local_temp_file)
+
+    with open(local_temp_file, 'rb') as file:
+        item = json.load(file)
+
+    os.remove(local_temp_file)
+    return item
 
 def check_and_create_directory(bucket, prefix):
     """Check if a directory exists in GCS and create it if it doesn't exist."""
@@ -210,6 +242,41 @@ def data_preprocess_pipeline(features):
        'Glucose', 'Hct', 'Hgb', 'WBC', 'Platelets', 'Age', 'HospAdmTime','ICULOS', 'F', 'M']]
     
     return X_preprocessed
+
+def check_data_anomaly(data, columns):    
+    pred_df = pd.DataFrame(data, columns=columns)
+    if_anomaly = False
+    anomaly = f"Anomalies found at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+    for col in columns:
+        if pred_df[col].dtype != "object":
+            mean_col = pred_df[col].mean()
+            std_col = pred_df[col].std()
+
+            mean_true = stats_schema_json["statistics"][col]["mean"]
+            std_true = stats_schema_json["statistics"][col]["std"]
+            
+            # percentage difference mean
+            mean_perc = abs(100*(mean_true-mean_col))/mean_true
+            
+            # percentage difference std
+            std_perc = abs(100*(std_true-std_col))/std_true
+            
+            if (mean_perc > 100) | (std_perc > 100):
+                if_anomaly = True
+                anomaly += f"For column {col}, percentage difference of mean is {mean_perc} and percentage difference of std is {std_perc}\n"
+    
+    if if_anomaly:
+        logger.log_text(f"Prediction Anomalies detected {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n {anomaly}", severity='WARNING')
+    return if_anomaly, anomaly
+
+def send_anomaly_email(anomaly):
+    msg = Message(
+        subject="[SEPSIS] Anomaly found while prediction",
+        sender='derilbackup@gmail.com',
+        recipients=['derilbackup@gmail.com'],
+        body = anomaly
+    )
+    mail.send(msg)
         
 @app.route(os.environ['AIP_HEALTH_ROUTE'], methods=['GET'])
 def health_check():
@@ -243,6 +310,17 @@ def predict():
     if col_names is None:
         return jsonify({"error": "Invalid input, 'column' names are missing"}), 400
 
+    # VERIFY COL NAMES ARE CORRECT
+    true_col_names = [key for key in list(stats_schema_json["schema"].keys()) if key!="SepsisLabel"]
+    diff_columns = list(set(true_col_names) ^ set(col_names))
+    if len(diff_columns) > 0:
+        return jsonify({"error": f"Extra/Missing columns passed: {', '.join(diff_columns)}"}), 400
+    
+    # Check for Data Anomalies
+    if_anomaly, anomaly = check_data_anomaly(input_data, col_names)
+    if if_anomaly:
+        send_anomaly_email(anomaly)
+    
     input_array = np.array(input_data)
     if input_array.ndim == 1:
         input_array = input_array.reshape(1, -1)
@@ -309,7 +387,7 @@ def predict():
     else:
         logger.log_text(f"Encountered errors inserting predictions into Logging table BQ.: {errors}", severity='ERROR')
 
-    return jsonify({"predictions": predictions.tolist()})
+    return jsonify({"predictions": predictions.tolist()}), 201
 
     
 # Workflow
@@ -317,7 +395,7 @@ create_or_get_logging_table_bq(bq_client, table_id)
 storage_client, bucket = initialize_client_and_bucket()
 scaler = load_scaler(bucket=bucket)
 model = load_model(bucket=bucket)
-
+stats_schema_json = load_stats_schema_file(bucket=bucket)
 
 if __name__ == '__main__':
     print("Started predict.py ")
