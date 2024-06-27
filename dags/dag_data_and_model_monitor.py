@@ -149,7 +149,7 @@ def schema_validation(ti):
     validate_schema_message = err_msg
     ti.xcom_push(key='validation_schema_message', value=validate_schema_message)
     if validate_schema_result:
-            return 'end_monitor_task' # Need to change this
+            return 'if_validate_data_statistics' 
     return 'prepare_email_schema_content'
 
 def validate_statistics(df):
