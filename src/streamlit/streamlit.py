@@ -34,7 +34,7 @@ def main():
         
         # Modify the existing 'Patient_ID' cast to str
         df['Patient_ID'] = df['Patient_ID'].apply(lambda x: str(int(x)) if pd.notna(x) and not isinstance(x, str) else (x if isinstance(x, str) else ""))
-
+        df["Patient_ID"] = df["Patient_ID"].astype(str)
 
         # cast columns to FLOAT as per schema
         columns_to_float = ["HR", "O2Sat", "Temp", "SBP", "MAP", "DBP", "Resp", "EtCO2", "BaseExcess", "HCO3", "FiO2", "pH", "PaCO2", "SaO2", "AST", 
@@ -51,7 +51,7 @@ def main():
         for column in columns_to_int:
             df[column] = df[column].astype(int)
         
- 
+
         st.subheader("File Content:")
         st.dataframe(df)  # Use st.dataframe for better visualization
         
