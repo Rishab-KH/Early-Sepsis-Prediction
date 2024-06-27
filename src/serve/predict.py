@@ -157,11 +157,9 @@ def data_preprocess_pipeline(features):
     columns_to_drop = ['SBP', 'DBP', 'EtCO2', 'BaseExcess', 'HCO3',
                         'pH', 'PaCO2', 'Alkalinephos', 'Calcium',
                         'Magnesium', 'Phosphate', 'Potassium', 'PTT',
-                        'Fibrinogen', 'Unit1', 'Unit2']
+                        'Fibrinogen', 'Unit1', 'Unit2', "SepsisLabel"]
     df["Unit"] = df["Unit1"] + df["Unit2"]
     df.drop(columns=columns_to_drop, inplace=True)
-
-
 
 
     grouped_by_patient = df.groupby('Patient_ID')

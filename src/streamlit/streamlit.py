@@ -46,7 +46,7 @@ def main():
             df[column] = df[column].astype(float)
 
         # Cast column to INT as per schema
-        columns_to_int = ["Gender", "ICULOS", "SepsisLabel"]
+        columns_to_int = ["Gender", "ICULOS"]
 
         for column in columns_to_int:
             df[column] = df[column].astype(int)
@@ -59,7 +59,9 @@ def main():
         col_names = list(df.columns)
         features = df.replace([np.nan, np.inf, -np.inf], None).values.tolist()
 
-
+        df["SepsisLabel"] = y
+        df["SepsisLabel"] = df["SepsisLabel"].astype(int)
+        
         # Send the data to the /predict endpoint
         url = f"{streamlit_uri}/predict"
         if url is None:
