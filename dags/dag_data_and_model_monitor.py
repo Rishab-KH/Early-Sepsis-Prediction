@@ -310,7 +310,8 @@ with DAG(
 
     # Dummy operator to signify the end of parallel tasks
     task_end = DummyOperator(
-        task_id="end_monitor_task"
+        task_id="end_monitor_task",
+        trigger_rule = "none_failed"
     )
     
 
