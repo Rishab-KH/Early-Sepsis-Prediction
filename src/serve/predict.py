@@ -157,7 +157,7 @@ def data_preprocess_pipeline(features):
     columns_to_drop = ['SBP', 'DBP', 'EtCO2', 'BaseExcess', 'HCO3',
                         'pH', 'PaCO2', 'Alkalinephos', 'Calcium',
                         'Magnesium', 'Phosphate', 'Potassium', 'PTT',
-                        'Fibrinogen', 'Unit1', 'Unit2', "SepsisLabel"]
+                        'Fibrinogen', 'Unit1', 'Unit2']
     df["Unit"] = df["Unit1"] + df["Unit2"]
     df.drop(columns=columns_to_drop, inplace=True)
 
@@ -283,8 +283,14 @@ def predict():
     blob.upload_from_string(updated_df.to_csv(index=False), 'text/csv')
     logger.log_text(f"Data appended to {filename} in GCS.", severity='INFO')
 
-    # Continue with the prediction logic
+    
+    if "SepsisLabel" in features.columns:
+        features.drop(columns = "SepsisLabel", inplace = True)
 
+    if "SepsisLabel" in updated_df.columns:
+        updated_df.drop(columns = "SepsisLabel", inplace = True)
+
+    # Continue with the prediction logic
     input_array = data_preprocess_pipeline(features)
     predictions = model.predict(input_array)
 
