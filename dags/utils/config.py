@@ -13,7 +13,8 @@ output_bucket = 'sepsis-prediction-outputs'
 DATA_DIR = 'gs://sepsis-prediction-mlops/data/modified_data/finalDataset-000000000000.csv'
 
 #predict directory
-PREDICT_DIR = "gs://sepsis-prediction-mlops/data/modified_data/prod_data/ProdDataset.csv"
+# Changed it from ProdDataset.csv to predict.csv for production
+PREDICT_DIR = "gs://sepsis-prediction-mlops/data/modified_data/prod_data/predict.csv"
 
 # name of the preprocessed data pickle file
 PREPROCESSED_DATA='preprocessed_data.pickle'
