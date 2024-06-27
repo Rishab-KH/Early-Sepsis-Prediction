@@ -263,7 +263,7 @@ def check_data_anomaly(data, columns):
             
             if (mean_perc > 100) | (std_perc > 100):
                 if_anomaly = True
-                anomaly += f"For column {col}, percentage difference of mean is {mean_perc} and percentage difference of std is {std_perc}\n"
+                anomaly += f"For column {col}, percentage difference of mean is {np.round(mean_perc,2)}% and percentage difference of std is {np.round(std_perc,2)}%\n"
     
     if if_anomaly:
         logger.log_text(f"Prediction Anomalies detected {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n {anomaly}", severity='WARNING')

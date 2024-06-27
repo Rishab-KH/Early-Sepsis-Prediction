@@ -15,3 +15,4 @@ google-cloud-logging
 google-auth
 google-cloud-bigquery
 google-cloud-storage
+google-cloud-secret-manager
