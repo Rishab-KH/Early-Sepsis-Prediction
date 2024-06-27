@@ -261,7 +261,7 @@ def check_data_anomaly(data, columns):
             # percentage difference std
             std_perc = abs(100*(std_true-std_col))/std_true
             
-            if (mean_perc > 100) | (std_perc > 100):
+            if (mean_perc > 300) | (std_perc > 300):
                 if_anomaly = True
                 anomaly += f"For column {col}, percentage difference of mean is {np.round(mean_perc,2)}% and percentage difference of std is {np.round(std_perc,2)}%\n"
     
