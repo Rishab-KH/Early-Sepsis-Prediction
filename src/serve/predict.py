@@ -273,7 +273,7 @@ def send_anomaly_email(anomaly):
     msg = Message(
         subject="[SEPSIS] Anomaly found while prediction",
         sender='derilbackup@gmail.com',
-        recipients=['derilbackup@gmail.com'],
+        recipients=['derilbackup@gmail.com','rishabkhuba3108@gmail.com'],
         body = anomaly
     )
     mail.send(msg)
