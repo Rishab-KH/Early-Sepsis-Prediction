@@ -283,9 +283,6 @@ def predict():
     blob.upload_from_string(updated_df.to_csv(index=False), 'text/csv')
     logger.log_text(f"Data appended to {filename} in GCS.", severity='INFO')
 
-    
-    if "SepsisLabel" in features.columns:
-        features.drop(columns = "SepsisLabel", inplace = True)
 
     if "SepsisLabel" in updated_df.columns:
         updated_df.drop(columns = "SepsisLabel", inplace = True)
