@@ -328,6 +328,11 @@ To enhance reliability, we implemented an alerting system that sends email notif
 
 [Endpoint - Computational Report](https://console.cloud.google.com/monitoring/dashboards/builder/69798a5d-8bbf-4d2e-8606-eea3beff5388;duration=P14D?project=leafy-sunrise-425218-h4)
 
+These computational reports have been configured to report the developers whenever an incident occurs. An incident could be when memory or disk space reaches a certain threshold. Below is a sample
+
+![image](https://github.com/Rishab-KH/IE7374-Sepsis-Classification/assets/47169600/d3e4dbba-b37b-43f0-8a95-6654bca9445c)
+
+
 To access these dashboards, Contact [Our Team](mailto:raju.d@northeastern.edu?cc=senthil.sh@northeastern.edu,khuba.r@northeastern.edu,sarda.h@northeastern.edu,dube.ra@northeastern.edu)
 
 # Installation (Locally)
