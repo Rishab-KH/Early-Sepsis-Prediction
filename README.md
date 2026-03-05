@@ -413,6 +413,8 @@ In our initial attempt to manage a substantial dataset consisting of 40,000 indi
 The above Gantt chart highlights the bottleneck in our pipeline
 
 ### Improvements with Google Cloud Platform (Computation Optimization)
+Medium article for the below improvement - [Link](https://medium.com/p/91aa922bdf80)
+
 #### Optimized Data Processing
 To enhance performance and manage the extensive dataset of 40,000 files more effectively, we transitioned from a sequential Python-based processing approach to a more robust solution leveraging Google Cloud's BigTable and Cloud Storage. This migration aimed to utilize the scalable infrastructure of GCP to expedite data handling and analysis.
 
@@ -498,4 +500,5 @@ Yearly Serving Cost: $6876.60 (without development machine)
 [Raghavi Dube](mailto:dube.ra@northeastern.edu)
 
 [Deril Raju](mailto:raju.d@northeastern.edu)
+
 
